@@ -1,7 +1,7 @@
 openapi: 3.0.2
 info:
   title: geodatacube API
-  version: 1.2.0
+  version: 1.0.0-beta
   description: |-
     The geodatacube API specification for interoperable cloud-based processing of large Earth observation datacubes.
 
@@ -471,15 +471,12 @@ info:
 
     Please be aware that the result node (`result` set to `true`) is not necessarily the last node that is executed. The author of the process graph may choose to set a non-end node to the result node!
   contact:
-    name: openEO Consortium
-    url: 'https://openeo.org'
-    email: openeo.psc@uni-muenster.de
+    name: OGC Testbed 19
+    url: 'https://www.ogc.org/initiatives/t-19/'
+    email: info@ogc.org
   license:
     name: Apache 2.0
     url: 'http://www.apache.org/licenses/LICENSE-2.0.html'
-externalDocs:
-  description: openEO Documentation
-  url: 'https://openeo.org/documentation/1.0/'
 tags:
   - name: Capabilities
     description: General information about the API implementation and other supported capabilities at the back-end.

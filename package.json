@@ -4,7 +4,7 @@
   "author": "OGC Testbed 19",
   "license": "Apache-2.0",
   "description": "The geodatacube API specification.",
-  "homepage": "https://openeo.org",
+  "homepage": "https://www.ogc.org/initiatives/t-19/",
   "bugs": {
     "url": "https://github.com/m-mohr/geodatacube-api/issues"
   },
@@ -18,7 +18,7 @@
   },
   "scripts": {
     "start": "redoc-cli serve openapi.yaml --watch --options.expandResponses \"200,201,202,203,204\" --options.pathInMiddlePanel true",
-    "build": "redoc-cli build openapi.yaml -o redoc.html --title \"openEO API\" --cdn --options.expandResponses \"200,201,202,203,204\" --options.pathInMiddlePanel true",
+    "build": "redoc-cli build openapi.yaml -o redoc.html --title \"geodatacube API\" --cdn --options.expandResponses \"200,201,202,203,204\" --options.pathInMiddlePanel true",
     "test": "spectral lint openapi.yaml"
   }
 }

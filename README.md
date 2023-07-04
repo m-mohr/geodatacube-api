@@ -1,19 +1,17 @@
-# openEO API
+# geodatacube API
 
-openEO develops an open API to connect R, Python and JavaScript clients to big Earth observation cloud back-ends in a simple and unified way. This repository contains this API, the openEO (core) API.
-
-* **[Latest Version of the Specification](https://api.openeo.org)**
+**[Documentation](https://m-mohr.github.io/geodatacube-api/)**
 
 ## Repository
 
-This repository contains a set of files formally describing the openEO API, each with a human-readable and easily browseable version:
+This repository contains a set of files formally describing the geodatacube API, each with a human-readable and easily browseable version:
 
-* [openapi.yaml](openapi.yaml) provides the [OpenAPI](https://www.openapis.org/) 3.0 definition of the openEO API. See the table above for human-readable versions of the OpenAPI definition.
+* [openapi.yaml](openapi.yaml) provides the [OpenAPI](https://www.openapis.org/) 3.0 definition of the geodatacube API. See the table above for human-readable versions of the OpenAPI definition.
 * The [assets](assets/) folder contains some useful additional files such as examples or schemas. All of these are non-binding additions. The source of truth are the top-level specification files.
 
 # Development
 
-The `draft` branch is the latest version and is the one to create Pull Requests against.
+The `master` branch is the latest version and is the one to create Pull Requests against.
 
 For development some tools can be used:
 
