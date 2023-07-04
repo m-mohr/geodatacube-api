@@ -539,6 +539,10 @@ tags:
     description: Management of batch processing tasks (jobs) and their results.
   - name: Secondary Services
     description: On-demand access to data using other web service protocols (e.g., OGC API - Tiles / Maps).
+  - name: OGC API - Features
+    description: Data access through OGC API - Features - Part 1 (v1.0.0) and STAC API (v1.0.0)
+  - name: OGC API - Coverages
+    description: Data access through OGC API - Coverages - Part 1 (v0.0.2)
 servers:
   - url: 'https://geodatacube.example/api/{version}'
     description: >-
@@ -576,6 +580,8 @@ paths:
         information.
       tags:
         - Capabilities
+        - OGC API - Features
+        - OGC API - Coverages
       security:
         - {}
       responses:
@@ -974,6 +980,8 @@ paths:
         - [OGC APIs](https://ogcapi.ogc.org/)
       tags:
         - Capabilities
+        - OGC API - Features
+        - OGC API - Coverages
       responses:
         '200':
           description: The URIs of all conformance classes supported by the server.
@@ -1013,6 +1021,8 @@ paths:
         with the Bearer token once available to also retrieve any private collections.
       tags:
         - EO Data Discovery / Access
+        - OGC API - Features
+        - OGC API - Coverages
       security:
         - {}
         - Bearer: []
@@ -1141,6 +1151,8 @@ paths:
         Note: Providing the Bearer token is REQUIRED for private collections.
       tags:
         - EO Data Discovery / Access
+        - OGC API - Features
+        - OGC API - Coverages
       security:
         - {}
         - Bearer: []
@@ -1364,6 +1376,7 @@ paths:
         Note: Providing the Bearer token is REQUIRED for private collections.
       tags:
         - EO Data Discovery / Access
+        - OGC API - Features
       security:
         - {}
         - Bearer: []
@@ -1406,6 +1419,7 @@ paths:
     get:
       tags:
         - EO Data Discovery / Access
+        - OGC API - Features
       summary: Fetch Features / Items
       description: |-
         Fetch features of the feature collection with id `collection_id`.
@@ -1470,6 +1484,7 @@ paths:
     get:
       tags:
         - EO Data Discovery / Access
+        - OGC API - Features
       summary: Fetch a single Feature / Item
       description: |-
         Fetch the feature with id `feature_id` in the feature collection
@@ -1497,6 +1512,7 @@ paths:
     get:
       tags:
       - EO Data Discovery / Access
+      - OGC API - Coverages
       summary: Retrieve the coverage identified by {collection_id}
       description: |-
         Coverage identified by {collection_id}.
@@ -1541,6 +1557,7 @@ paths:
     get:
       tags:
       - EO Data Discovery / Access
+      - OGC API - Coverages
       summary: Retrieve a coverage's domainset
       description: a coverage's domainset; use content negotiation to request
         HTML or JSON
@@ -1572,6 +1589,7 @@ paths:
     get:
       tags:
       - EO Data Discovery / Access
+      - OGC API - Coverages
       summary: Retrieve a coverage's rangetype
       description: a coverage's rangetype; use content negotiation to request
         HTML or JSON
@@ -1597,6 +1615,7 @@ paths:
     get:
       tags:
       - EO Data Discovery / Access
+      - OGC API - Coverages
       summary: Retrieve a coverage's rangeset
       description: a coverage's rangeset (i.e., the data record values only);
         use content negotiation to specify output format
@@ -1632,6 +1651,7 @@ paths:
     get:
       tags:
       - EO Data Discovery / Access
+      - OGC API - Coverages
       summary: Retrieve coverage's metadata
       description: a coverage's metadata
       operationId: describe-coverage-metadata
@@ -1656,6 +1676,7 @@ paths:
     get:
       tags:
       - EO Data Discovery / Access
+      - OGC API - Coverages
       summary: Retrieve available coverage tilesets
       description: Retrieve the list of available coverage tilesets for the specified collection.
       operationId: list-coverage-tiles
@@ -1673,6 +1694,7 @@ paths:
     get:
       tags:
       - EO Data Discovery / Access
+      - OGC API - Coverages
       summary: Retrieve the coverage tileset metadata
       description: >-
         Retrieve the coverage tileset metadata for the specified collection
@@ -1693,6 +1715,7 @@ paths:
     get:
       tags:
       - EO Data Discovery / Access
+      - OGC API - Coverages
       summary: Retrieve coverage tiles
       description: Retrieve coverage tiles.
       operationId: show-coverage-tile
