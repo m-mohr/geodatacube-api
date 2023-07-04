@@ -543,8 +543,6 @@ tags:
     description: Management of batch processing tasks (jobs) and their results.
   - name: Secondary Services
     description: On-demand access to data using other web service protocols.
-  - name: File Storage
-    description: Management of user-uploaded assets and processed data.
 servers:
   - url: 'https://geodatacube.example/api/{version}'
     description: >-
