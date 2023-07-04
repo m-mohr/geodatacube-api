@@ -5,6 +5,8 @@ info:
   description: |-
     The geodatacube API specification for interoperable cloud-based processing of large Earth observation datacubes.
 
+    **Conformance class**: `https://api.geodatacube.example/1.0.0-beta`
+
     # API Principles
 
     ## Language
@@ -15,7 +17,7 @@ info:
 
     Unless otherwise stated the API works **case sensitive**.
 
-    All names SHOULD be written in snake case, i.e. words are separated with one underscore character (`_`) and no spaces, with all letters lower-cased. Example: `hello_world`. This applies particularly to endpoints and JSON property names. HTTP header fields are generally case-insensitive according to [RFC 7230](https://www.rfc-editor.org/rfc/rfc7230.html#section-3.2) and in the specification we follow their respective casing conventions, e.g. `Content-Type` or `OpenEO-Identifier`, for better readability and consistency.
+    All names SHOULD be written in snake case, i.e. words are separated with one underscore character (`_`) and no spaces, with all letters lower-cased. Example: `hello_world`. This applies particularly to endpoints and JSON property names. HTTP header fields are generally case-insensitive according to [RFC 7230](https://www.rfc-editor.org/rfc/rfc7230.html#section-3.2) and in the specification we follow their respective casing conventions, e.g. `Content-Type` or `GDC-Identifier`, for better readability and consistency.
 
     ## HTTP / REST
 
@@ -27,7 +29,7 @@ info:
 
     Naming of endpoints follow the REST principles. Therefore, endpoints are centered around resources. Resource identifiers MUST be named with a noun in plural form except for single actions that can not be modelled with the regular HTTP verbs. Single actions MUST be single endpoints with a single HTTP verb (POST is RECOMMENDED) and no other endpoints beneath it.
 
-    The openEO API makes use of [HTTP Content Negotiation](https://www.rfc-editor.org/rfc/rfc9110.html#name-content-negotiation),
+    The API makes use of [HTTP Content Negotiation](https://www.rfc-editor.org/rfc/rfc9110.html#name-content-negotiation),
     including, but not limited to, the request headers `Accept`, `Accept-Charset` and `Accept-Language`.
 
     ### JSON
@@ -54,7 +56,7 @@ info:
     3. `about`: A resource that is related or further explains the resource, e.g. a user guide.
 
     4. `canonical`: This relation type usually points to a publicly accessible and more long-lived URL for a resource that otherwise often requires (Bearer) authentication with a short-lived token.
-    This way the the exposed resources can be used by non-openEO clients without additional authentication steps.
+    This way the the exposed resources can be used by clients without additional authentication steps.
     For example, a shared user-defined process or batch job results could be exposed via a canonical link.
     If a URL should be publicly available to everyone, it can simply a user-specific URL, e.g. `https://geodatacube.example/processes/john_doe/ndvi`.
     For resources that should only be accessible to a certain group of user, a signed URL could be given, e.g. `https://geodatacube.example/processes/81zjh1tc2pt52gbx/ndvi`.
@@ -95,7 +97,7 @@ info:
 
     ### Standardized status codes
 
-    The openEO API usually uses the following HTTP status codes for successful requests: 
+    The API usually uses the following HTTP status codes for successful requests: 
 
     - **200 OK**:
       Indicates a successful request **with** a response body being sent.
@@ -106,7 +108,7 @@ info:
     - **204 No Content**:
       Indicates a successful request **without** a response body being sent.
 
-    The openEO API has some commonly used HTTP status codes for failed requests: 
+    The API has some commonly used HTTP status codes for failed requests: 
 
     - **400 Bad Request**:
       The back-end responds with this error code whenever the error has its origin on client side and no other HTTP status code in the 400 range is suitable.
@@ -125,13 +127,13 @@ info:
       The error has its origin on server side and no other status code in the 500 range is suitable.
 
     - **501 Not Implemented**:
-      The requested endpoint is specified by the openEO API, but is not implemented (yet) by the back-end.
+      The requested endpoint is part of the API specification, but is not implemented (yet) by the back-end.
       *Note:* Unsupported endpoints MAY also return HTTP status code 404.
 
 
     If a HTTP status code in the 400 range is returned, the client SHOULD NOT repeat the request without modifications. For HTTP status code in the 500 range, the client MAY repeat the same request later.
 
-    All HTTP status codes defined in RFC 7231 in the 400 and 500 ranges can be used as openEO error code in addition to the most used status codes mentioned here. Responding with openEO error codes 400 and 500 SHOULD be avoided in favor of any more specific standardized or proprietary openEO error code.
+    All HTTP status codes defined in RFC 7231 in the 400 and 500 ranges can be used as error code in addition to the most used status codes mentioned here. Responding with error codes 400 and 500 SHOULD be avoided in favor of any more specific standardized or proprietary error code.
 
     ## Temporal data
 
@@ -139,9 +141,9 @@ info:
 
     # Authentication
 
-    The openEO API offers two forms of authentication by default:
-    * OpenID Connect (recommended) at `GET /credentials/oidc`
+    The API offers one forms of authentication by default:
     * Basic at `GET /credentials/basic`
+    * OpenID connect could be adopted from the openEO API
       
     After authentication with any of the methods listed above, the tokens obtained during the authentication workflows can be sent to protected endpoints in subsequent requests.
     
@@ -159,7 +161,7 @@ info:
     
     Source: [https://en.wikipedia.org/wiki/Cross-origin_resource_sharing](https://en.wikipedia.org/wiki/Cross-origin_resource_sharing)
     
-    openEO-based back-ends are usually hosted on a different domain / host than the client that is requesting data from the back-end. Therefore most requests to the back-end are blocked by all modern browsers. This leads to the problem that the JavaScript library and any browser-based application can't access back-ends. Therefore, all back-end providers SHOULD support CORS to enable browser-based applications to access back-ends. [CORS is a recommendation of the W3C organization](https://www.w3.org/TR/cors/). The following chapters will explain how back-end providers can implement CORS support.
+    Geodatacube-API-based back-ends are usually hosted on a different domain / host than the client that is requesting data from the back-end. Therefore most requests to the back-end are blocked by all modern browsers. This leads to the problem that the JavaScript library and any browser-based application can't access back-ends. Therefore, all back-end providers SHOULD support CORS to enable browser-based applications to access back-ends. [CORS is a recommendation of the W3C organization](https://www.w3.org/TR/cors/). The following chapters will explain how back-end providers can implement CORS support.
 
     **Tip**: Most servers can send the required headers and the responses to the OPTIONS requests automatically for all endpoints. Otherwise you may also use a proxy server to add the headers and OPTIONS responses.
     
@@ -170,7 +172,7 @@ info:
     | Name                             | Description                                                  | Example |
     | -------------------------------- | ------------------------------------------------------------ | ------- |
     | Access-Control-Allow-Origin      | Allowed origin for the request, including protocol, host and port or `*` for all origins. It is RECOMMENDED to return the value `*` to allow requests from browser-based implementations such as the Web Editor. | `*` |
-    | Access-Control-Expose-Headers    | Some endpoints require to send additional HTTP response headers such as `OpenEO-Identifier` and `Location`. To make these headers available to browser-based clients, they MUST be white-listed with this CORS header. The following HTTP headers are white-listed by browsers and MUST NOT be included: `Cache-Control`, `Content-Language`, `Content-Length`, `Content-Type`, `Expires`, `Last-Modified` and `Pragma`. At least the following headers MUST be listed in this version of the openEO API: `Link`, `Location`, and `OpenEO-Identifier`. | `Link, Location, OpenEO-Identifier` |
+    | Access-Control-Expose-Headers    | Some endpoints require to send additional HTTP response headers such as `GDC-Identifier` and `Location`. To make these headers available to browser-based clients, they MUST be white-listed with this CORS header. The following HTTP headers are white-listed by browsers and MUST NOT be included: `Cache-Control`, `Content-Language`, `Content-Length`, `Content-Type`, `Expires`, `Last-Modified` and `Pragma`. At least the following headers MUST be listed in this version of the API: `Link`, `Location`, and `GDC-Identifier`. | `Link, Location, GDC-Identifier` |
     
     
     
@@ -190,10 +192,10 @@ info:
     ```http
     HTTP/1.1 201 Created
     Access-Control-Allow-Origin: *
-    Access-Control-Expose-Headers: Location, OpenEO-Identifier, Link
+    Access-Control-Expose-Headers: Location, GDC-Identifier, Link
     Content-Type: application/json
     Location: https://geodatacube.example/api/v1/jobs/abc123
-    OpenEO-Identifier: abc123
+    GDC-Identifier: abc123
     ```
     
     ## OPTIONS method
@@ -228,13 +230,13 @@ info:
     Access-Control-Allow-Origin: *
     Access-Control-Allow-Methods: OPTIONS, GET, POST, PATCH, PUT, DELETE
     Access-Control-Allow-Headers: Authorization, Content-Type
-    Access-Control-Expose-Headers: Location, OpenEO-Identifier, Link
+    Access-Control-Expose-Headers: Location, GDC-Identifier, Link
     Content-Type: application/json
     ```
 
     # Processes
 
-    A **process** is an operation that performs a specific task on a set of parameters and returns a result. An example is computing a statistical operation, such as mean or median, on selected EO data. A process is similar to a function or method in programming languages. In openEO, processes are used to build a chain of processes ([process graph](#section/Processes/Process-Graphs)), which can be applied to EO data to derive your own findings from the data.
+    A **process** is an operation that performs a specific task on a set of parameters and returns a result. An example is computing a statistical operation, such as mean or median, on selected EO data. A process is similar to a function or method in programming languages. In this API, processes are used to build a chain of processes ([process graph](#section/Processes/Process-Graphs)), which can be applied to EO data to derive your own findings from the data.
 
     A **predefined process** is a process provided by the *back-end*. There is a set of predefined processes by openEO to improve interoperability between back-ends.
     Back-ends SHOULD follow these specifications whenever possible. Not all processes need to be implemented by all back-ends. See the **[process reference](https://processes.openeo.org)** for predefined processes.
@@ -261,8 +263,6 @@ info:
     * Defining the algorithm as a process graph.
     * Optionally, specifying the additional metadata for processes.
 
-    If new process are potentially useful for other back-ends the openEO consortium is happily accepting [pull requests](https://github.com/Open-EO/openeo-processes/pulls) to include them in the list of predefined processes.
-
     ### Schemas
 
     Each process parameter and the return values of a process define a schema that the value MUST comply to. The schemas are based on [JSON Schema draft-07](http://json-schema.org/).
@@ -278,7 +278,7 @@ info:
     JSON Schema allows to specify only a small set of native data types (string, boolean, number, integer, array, object, null).
     To support more fine grained data types, a custom [JSON Schema keyword](https://json-schema.org/draft-07/json-schema-core.html#rfc.section.6.4) has been defined: `subtype`.
     It works similarly as the JSON Schema keyword [`format`](https://json-schema.org/draft-07/json-schema-validation.html#rfc.section.7)
-    and standardizes a number of openEO related data types that extend the native data types, for example:
+    and standardizes a number of common data types that extend the native data types, for example:
     `bounding-box` (object with at least `west`, `south`, `east` and `north` properties),
     `date-time` (string representation of date and time following RFC 3339),
     `datacube` (a datacube with dimensions), etc.
@@ -482,7 +482,7 @@ tags:
     description: General information about the API implementation and other supported capabilities at the back-end.
   - name: Account Management
     description: |-
-      The following endpoints handle user profiles, accounting and authentication. See also [Authentication](#section/Authentication). In general, the openEO API only defines a minimum subset of user management and accounting functionality. It allows to
+      The following endpoints handle user profiles, accounting and authentication. See also [Authentication](#section/Authentication). In general, the API only defines a minimum subset of user management and accounting functionality. It allows to
 
       * [authenticate and authorize](http://www.differencebetween.net/technology/difference-between-authentication-and-authorization/) a user, which may include [user registration with OpenID Connect](http://openid.net/specs/openid-connect-registration-1_0.html),
       * handle storage space limits (disk quota),
@@ -505,19 +505,19 @@ tags:
 
       ## STAC
       
-      For data discovery of Earth Observation Collections at the back-ends, openEO strives for compatibility with the specifications [SpatioTemporal Asset Catalog (STAC)](https://stacspec.org/) and [OGC API - Features - Part 1: Core](http://docs.opengeospatial.org/is/17-069r3/17-069r3.html) as far as possible. Implementing the data discovery endpoints of openEO also produced valid STAC API 1.0 and OGC API - Features 1.0 responses, including ([partial](#provide-data-for-download)) compatibility with their APIs. 
+      For data discovery of Earth Observation Collections at the back-ends, this API strives for compatibility with the specifications [SpatioTemporal Asset Catalog (STAC)](https://stacspec.org/) and [OGC API - Features - Part 1: Core](http://docs.opengeospatial.org/is/17-069r3/17-069r3.html) as far as possible. Implementing these data discovery endpoints also produced valid STAC API 1.0 and OGC API - Features 1.0 responses, including ([partial](#provide-data-for-download)) compatibility with their APIs. 
 
-      The data discovery endpoints `GET /collections` and `GET /collections/{collection_id}` are compatible with OGC API - Features and STAC. Both specifications define additional endpoints that need to be implemented to be fully compatible. The additional endpoints can easily be integrated into an openEO API implementation. A rough list of actions for compatibility is available below, but please refer to their specifications to find out the full details.
+      The data discovery endpoints `GET /collections` and `GET /collections/{collection_id}` are compatible with OGC API - Features and STAC. Both specifications define additional endpoints that need to be implemented to be fully compatible. The additional endpoints can easily be integrated into an geodatacube API implementation. A rough list of actions for compatibility is available below, but please refer to their specifications to find out the full details.
 
-      The openEO API implements STAC API versions >= 1.0.0.
+      The geodatacube API implements STAC API versions >= 1.0.0.
       
       ### Content Extensions
       
       STAC has several [extensions](https://stac-extensions.github.io) that can be used to better describe your data. Clients and server are not required to implement all of them, so be aware that some clients may not be able to read all your metadata.
       
-      Some commonly used extensions that are relevant for datasets exposed through the openEO API are:
+      Some commonly used extensions that are relevant for datasets exposed through the geodatacube API are:
       
-      - Data Cube extension (part of the openEO API)
+      - Data Cube extension (part of the geodatacube API)
       - [EO (Electro-Optical) extension](https://github.com/stac-extensions/eo)
       - [Processing extension](https://github.com/stac-extensions/processing)
       - [Raster extension](https://github.com/stac-extensions/raster)
@@ -531,7 +531,7 @@ tags:
 
       ### API Extensions
       
-      STAC API has several [extensions](https://stac-api-extensions.github.io) that can be implemented on top of the openEO API to enrich the API functionality, e.g. for searching.
+      STAC API has several [extensions](https://stac-api-extensions.github.io) that can be implemented on top of the geodatacube API to enrich the API functionality, e.g. for searching.
   - name: Process Discovery
     description: |-
       These endpoints allow to list the predefined processes that are available at the back-end. To list user-defined processes see '[User-Defined Processes](#tag/User-Defined-Processes)'.
@@ -543,8 +543,6 @@ tags:
     description: Management of batch processing tasks (jobs) and their results.
   - name: Secondary Services
     description: On-demand access to data using other web service protocols.
-  - name: File Storage
-    description: Management of user-uploaded assets and processed data.
 servers:
   - url: 'https://geodatacube.example/api/{version}'
     description: >-
@@ -556,7 +554,7 @@ servers:
       version:
         default: v1
         description: |-
-          API versioning is RECOMMENDED. As the openEO API is following
+          API versioning is RECOMMENDED. As the geodatacube API is following
           [SemVer](https://semver.org/) only the **major** part of the version
           numbers SHOULD be used for API versioning in the URL. To make clear
           that it is a version number, it is RECOMMENDED to add the prefix `v`.
@@ -578,7 +576,7 @@ paths:
       operationId: capabilities
       description: >-
         Lists general information about the back-end, including which version
-        and endpoints of the openEO API are supported. May also include billing
+        and endpoints of the geodatacube API are supported. May also include billing
         information.
       tags:
         - Capabilities
@@ -600,20 +598,20 @@ paths:
                   - id
                   - title
                   - description
-                  - api_version
+                  - gdc_version
                   - backend_version
                   - stac_version
                   - endpoints
                   - links
                   - conformsTo
                 properties:
-                  api_version:
+                  gdc_version:
                     type: string
                     description: >-
-                      Version number of the openEO specification this back-end
+                      Version number of the geodatacube API specification this back-end
                       implements.
                     enum:
-                      - 1.2.0
+                      - 1.0.0-beta
                   backend_version:
                     type: string
                     description: >-
@@ -652,7 +650,7 @@ paths:
                       [CommonMark 0.29](http://commonmark.org/) syntax MAY be
                       used for rich text representation.
                     example: |-
-                      This service is provided to you by [Example Cloud Corp.](https://cloud.example). It implements the full openEO API and allows to process a range of 999 EO data sets, including 
+                      This service is provided to you by [Example Cloud Corp.](https://cloud.example). It implements the full geodatacube API and allows to process a range of 999 EO data sets, including 
 
                       * Sentinel 1/2/3 and 5
                       * Landsat 7/8
@@ -764,7 +762,7 @@ paths:
                       a reminder about the username to the user's email account).
 
                       For additional relation types see also the lists of
-                      [common relation types in openEO](#section/API-Principles/Web-Linking).
+                      [common relation types](#section/API-Principles/Web-Linking).
                     type: array
                     items:
                       $ref: '#/components/schemas/link'
@@ -820,7 +818,7 @@ paths:
         Formats](https://gdal.org/drivers/raster/index.html) and [OGR Vector
         Formats](https://gdal.org/drivers/vector/index.html). It is OPTIONAL to
         support all output format parameters supported by GDAL. Some file
-        formats not available through GDAL may be defined centrally for openEO.
+        formats not available through GDAL may be defined centrally for the geodatacube.
         Custom file formats or parameters MAY be defined.
 
         The format descriptions must describe how the file formats relate to 
@@ -830,7 +828,7 @@ paths:
         resulting file structure looks like.
 
         Back-ends MUST NOT support aliases, for example it is not allowed to
-        support `geotiff` instead of `gtiff`. Nevertheless, openEO Clients MAY
+        support `geotiff` instead of `gtiff`. Nevertheless, geodatacube clients MAY
         translate user input input for convenience (e.g. translate `geotiff` to
         `gtiff`). Also, for a better user experience the back-end can specify a
         `title`.
@@ -969,10 +967,7 @@ paths:
       description: |-
         Lists all conformance classes specified in various standards that the
         implementation conforms to. Conformance classes are commonly used in
-        all OGC APIs and the STAC API specification. openEO adds relatively
-        broadly defined conformance classes, especially for the extensions.
-        Otherwise, the implemented functionality can usually be retrieved from
-        the [capabilties](#tag/Capabilities/operation/capabilities) in openEO.
+        all OGC APIs and the STAC API specification.
 
         The conformance classes listed at this endpoint and listed in the 
         corresponding `conformsTo` property in `GET /` MUST be equal.
@@ -1080,7 +1075,7 @@ paths:
                           - licensor
                         url: >-
                           https://sentinel.esa.int/web/sentinel/user-guides/sentinel-2-msi
-                      - name: openEO
+                      - name: Google Earth Engine
                         roles:
                           - host
                         url: >-
@@ -1364,11 +1359,11 @@ paths:
         [OGC API - Features - Part 3: Filtering](https://github.com/opengeospatial/ogcapi-features/tree/master/extensions/filtering).
         For a precise definition please follow those specifications.
 
-        This endpoints provides a JSON Schema for each queryable that openEO
+        This endpoints provides a JSON Schema for each queryable that geodatacube
         users can use in multiple scenarios:
         1. For loading data from the collection, e.g. in the process `load_collection`.
         2. For filtering items using CQL2 on the `/collections/{collection_id}/items` endpoint
-           (if [STAC API - Features is implemented in addition to the openEO API](#tag/EO-Data-Discovery/STAC)).
+           (if [STAC API - Features is implemented in addition to the geodatacube API](#tag/EO-Data-Discovery/STAC)).
 
         Note: Providing the Bearer token is REQUIRED for private collections.
       tags:
@@ -1607,10 +1602,9 @@ paths:
         can be used to generate small previews or test user-defined processes before
         starting a batch job.
         
-        Timeouts on either client- or server-side are to be expected for complex
-        computations. Back-ends MAY send the openEO error `ProcessGraphComplexity`
-        immediately if the computation is expected to time out. Otherwise requests
-        MAY time-out after a certain amount of time by sending openEO error `RequestTimeout`.
+        Timeouts on either client- or server-side are to be expected for complex computations.
+        Back-ends MAY send the an error immediately if the computation is expected to time out.
+        Otherwise requests MAY time-out after a certain amount of time by sending an error.
       tags:
         - Data Processing
       security:
@@ -1920,7 +1914,7 @@ paths:
                         information about the configuration settings and process parameters.
 
                         For relation types see the lists of
-                        [common relation types in openEO](#section/API-Principles/Web-Linking).
+                        [common relation types](#section/API-Principles/Web-Linking).
                       type: array
                       items:
                         $ref: '#/components/schemas/link'
@@ -2082,7 +2076,7 @@ paths:
                 format: uri
                 type: string
                 example: 'https://geodatacube.example/api/v1/services/123'
-            OpenEO-Identifier:
+            GDC-Identifier:
               required: true
               schema:
                 $ref: '#/components/schemas/service_id'
@@ -2310,7 +2304,7 @@ paths:
                 format: uri
                 type: string
                 example: 'https://geodatacube.example/api/v1/jobs/123'
-            OpenEO-Identifier:
+            GDC-Identifier:
               required: true
               schema:
                 $ref: '#/components/schemas/job_id'
@@ -2481,8 +2475,7 @@ paths:
         STAC Collections can either (1) add all assets as collection-level assets or
         (2) link to STAC Catalogs and STAC Items with signed URLs, which will provide a full
         STAC catalog structure a client has to go through. Option 2 is overall the better 
-        architectural choice and allows a fine-grained description of the processed data,
-        but it is not compliant with previous versions of the openEO API.
+        architectural choice and allows a fine-grained description of the processed data.
 
         Clients are RECOMMENDED to store this response and all potential sub-catalogs
         and items with the assets so that the downloaded data is then a self-contained
@@ -2813,21 +2806,8 @@ components:
         type: string
         format: uri
       example:
-        - https://api.openeo.org/1.0.0
+        - https://api.geodatacube.example/1.0.0-beta
         - https://api.stacspec.org/v1.0.0/collections
-    result_status:
-      type: string
-      enum:
-        - running
-        - canceled
-        - finished
-        - error
-      description: |-
-        The status of a batch job.
-
-        This field is REQUIRED if the `partial` parameter is given.
-        This field is strongly RECOMMENDED if the job has stopped due to an error.
-      default: finished
     batch_job_result:
       title: Batch Job Results Response as STAC Item
       description:
@@ -2941,8 +2921,6 @@ components:
                 Time until which the assets are accessible, in UTC. Formatted as
                 a [RFC 3339](https://www.rfc-editor.org/rfc/rfc3339.html) date-time.
               example: '2020-11-01T00:00:00Z'
-            'openeo:status':
-              $ref: '#/components/schemas/result_status'
         assets:
           $ref: '#/components/schemas/stac_assets'
         links:
@@ -2958,11 +2936,11 @@ components:
 
             It is **strongly recommended** to add a link with relation type
             `canonical`, which points to this STAC document using a signed URL.
-            This way the STAC metadata can be used by non-openEO clients
+            This way the STAC metadata can be used by other clients
             without additional authentication steps.
 
             For relation types see the lists of
-            [common relation types in openEO](#section/API-Principles/Web-Linking).
+            [common relation types](#section/API-Principles/Web-Linking).
           items:
             $ref: '#/components/schemas/link'
           example:
@@ -3014,7 +2992,7 @@ components:
             Links related to this file format, e.g. external documentation.
 
             For relation types see the lists of
-            [common relation types in openEO](#section/API-Principles/Web-Linking).
+            [common relation types](#section/API-Principles/Web-Linking).
           items:
             $ref: '#/components/schemas/link'
     links_pagination:
@@ -3034,7 +3012,7 @@ components:
         4. `last` (OPTIONAL): A link to the last page, except on the last page.
 
         For additional relation types see also the lists of
-        [common relation types in openEO](#section/API-Principles/Web-Linking).
+        [common relation types](#section/API-Principles/Web-Linking).
       type: array
       items:
         $ref: '#/components/schemas/link'
@@ -3070,7 +3048,7 @@ components:
         title:
           type: string
           description: Used as a human-readable label for a link.
-          example: openEO
+          example: Example title
     asset:
       title: STAC Asset
       type: object
@@ -3286,7 +3264,7 @@ components:
             For JSON Schema documents, the `type` field must be set to `application/schema+json`.
 
             For additional relation types see also the lists of
-            [common relation types in openEO](#section/API-Principles/Web-Linking)
+            [common relation types](#section/API-Principles/Web-Linking)
             and the STAC specification for Collections.
           type: array
           items:
@@ -4103,7 +4081,7 @@ components:
             links SHOULD be added.
 
             For additional relation types see also the lists of
-            [common relation types in openEO](#section/API-Principles/Web-Linking).
+            [common relation types](#section/API-Principles/Web-Linking).
           items:
             $ref: '#/components/schemas/link'
         process_graph:
@@ -4161,7 +4139,7 @@ components:
       description: |-
         The namespace the `process_id` is valid for.
 
-        The following options are predefined by the openEO API, but additional
+        The following options are predefined by the geodatacube API, but additional
         namespaces may be introduced by back-ends or in a future version of the API.
         
         * `null` (default): Checks both user-defined and predefined processes,
@@ -4271,7 +4249,7 @@ components:
             type: integer
             description: >-
               HTTP Status Code, following the [error handling conventions in
-              openEO](#section/API-Principles/Error-Handling).
+              this API](#section/API-Principles/Error-Handling).
               Defaults to `400`.
             default: 400
     process_parameters:
@@ -4437,7 +4415,7 @@ components:
             3. `error` / `canceled`: Partial results and logs may be available.
 
             For more relation types see the lists of
-            [common relation types in openEO](#section/API-Principles/Web-Linking).
+            [common relation types](#section/API-Principles/Web-Linking).
           items:
             $ref: '#/components/schemas/link'
           example:
@@ -4685,7 +4663,7 @@ components:
         provides further explanations.
 
         For relation types see the lists of
-        [common relation types in openEO](#section/API-Principles/Web-Linking).
+        [common relation types](#section/API-Principles/Web-Linking).
       type: array
       items:
         $ref: '#/components/schemas/link'
@@ -4888,7 +4866,7 @@ components:
       properties:
         $schema:
           description: |-
-            The JSON Schema version. If not given in the context of openEO,
+            The JSON Schema version. If not given in the context of this API,
             defaults to `draft-07`.
           
             You may need to add the default value for `$schema` property explicitly to the JSON Schema
@@ -5147,7 +5125,7 @@ components:
             A concise message explaining the log entry.
 
             Messages do *not* explicitly support [CommonMark 0.29](http://commonmark.org/)
-            syntax as other descriptive fields in the openEO API do,
+            syntax as other descriptive fields in the geodatacube API do,
             but the messages MAY contain line breaks or indentation.
 
             It is NOT RECOMMENDED to add stacktraces to the `message`.

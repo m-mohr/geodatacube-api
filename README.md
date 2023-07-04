@@ -1,13 +1,13 @@
 # geodatacube API
 
-**[Documentation](https://m-mohr.github.io/geodatacube-api/)**
+**[API Documentation](https://m-mohr.github.io/geodatacube-api/)**
 
 ## Repository
 
 This repository contains a set of files formally describing the geodatacube API, each with a human-readable and easily browseable version:
 
 * [openapi.yaml](openapi.yaml) provides the [OpenAPI](https://www.openapis.org/) 3.0 definition of the geodatacube API. See the table above for human-readable versions of the OpenAPI definition.
-* The [assets](assets/) folder contains some useful additional files such as examples or schemas. All of these are non-binding additions. The source of truth are the top-level specification files.
+* The [assets](assets/) folder contains some useful additional files such as examples, crosswalks, or schemas. All of these are non-binding additions. The source of truth are the top-level specification files.
 
 # Development
 

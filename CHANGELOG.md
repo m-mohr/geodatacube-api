@@ -6,4 +6,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased / Draft
 
-[Unreleased]: <https://github.com/Open-EO/openeo-api/compare/master...dev>
+[Unreleased]: <https://github.com/m-mohr/geodatacube-api/compare/master...dev>
