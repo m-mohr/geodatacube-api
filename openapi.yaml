@@ -1541,9 +1541,9 @@ paths:
     get:
       tags:
       - EO Data Discovery / Access
-      summary: Retrieve a coverage's domainset; use content negotiation to request
+      summary: Retrieve a coverage's domainset
+      description: a coverage's domainset; use content negotiation to request
         HTML or JSON
-      description: a coverage's domainset
       operationId: describe-coverage-domainset
       parameters:
       - "$ref": "#/components/parameters/collection_id"
@@ -1572,9 +1572,9 @@ paths:
     get:
       tags:
       - EO Data Discovery / Access
-      summary: Retrieve a coverage's rangetype; use content negotiation to request
+      summary: Retrieve a coverage's rangetype
+      description: a coverage's rangetype; use content negotiation to request
         HTML or JSON
-      description: a coverage's rangetype
       operationId: describe-coverage-rangetype
       parameters:
       - "$ref": "#/components/parameters/collection_id"
@@ -1597,9 +1597,9 @@ paths:
     get:
       tags:
       - EO Data Discovery / Access
-      summary: Retrieve a coverage's rangeset (i.e., the data record values only);
+      summary: Retrieve a coverage's rangeset
+      description: a coverage's rangeset (i.e., the data record values only);
         use content negotiation to specify output format
-      description: a coverage's rangeset
       operationId: describe-coverage-rangeset
       parameters:
       - "$ref": "#/components/parameters/collection_id"
