@@ -538,7 +538,7 @@ tags:
   - name: Batch Jobs
     description: Management of batch processing tasks (jobs) and their results.
   - name: Secondary Services
-    description: On-demand access to data using other web service protocols.
+    description: On-demand access to data using other web service protocols (e.g., OGC API - Tiles / Maps).
 servers:
   - url: 'https://geodatacube.example/api/{version}'
     description: >-
