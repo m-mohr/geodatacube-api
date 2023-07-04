@@ -15,4 +15,5 @@
 - Removal of `OpenEO-Costs` header
 
 ## Additions
-- Addition of `/collections/{collection_id}/items` and `/collections/{collection_id}/items/{feature_id}` (OGC API - Features and STAC API - Features)
+- Addition of `/collections/{collection_id}/items` and `/collections/{collection_id}/items/...` (OGC API - Features and STAC API - Features, both version 1.0)
+- Addition of `/collections/{collection_id}/coverages` and `/collections/{collection_id}/coverages/...` (OGC API - Coverages, version 0.0.2)
