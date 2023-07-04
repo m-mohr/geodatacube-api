@@ -505,7 +505,7 @@ tags:
 
       ## STAC
       
-      For data discovery of Earth Observation Collections at the back-ends, this API strives for compatibility with the specifications [SpatioTemporal Asset Catalog (STAC)](https://stacspec.org/) and [OGC API - Features - Part 1: Core](http://docs.opengeospatial.org/is/17-069r3/17-069r3.html) as far as possible. Implementing these data discovery endpoints also produced valid STAC API 1.0 and OGC API - Features 1.0 responses, including ([partial](#provide-data-for-download)) compatibility with their APIs. 
+      For data discovery of Earth Observation Collections at the back-ends, this API strives for compatibility with the specifications [SpatioTemporal Asset Catalog (STAC)](https://stacspec.org/) and [OGC API - Features - Part 1: Core](http://docs.opengeospatial.org/is/17-069r3/17-069r3.html) as far as possible. Implementing these data discovery endpoints also produces valid STAC API 1.0 and OGC API - Features 1.0 responses. 
 
       The data discovery endpoints `GET /collections` and `GET /collections/{collection_id}` are compatible with OGC API - Features and STAC. Both specifications define additional endpoints that need to be implemented to be fully compatible. The additional endpoints can easily be integrated into an geodatacube API implementation. A rough list of actions for compatibility is available below, but please refer to their specifications to find out the full details.
 
@@ -524,10 +524,6 @@ tags:
       - [SAR extension](https://github.com/stac-extensions/sar)
       - [Satellite extension](https://github.com/stac-extensions/sat)
       - [Scientific Citation extension](https://github.com/stac-extensions/scientific)
-      
-      ### Provide data for download
-      
-      If you'd like to provide your data for download in addition to offering the cloud processing service, you can implement the full STAC API. Therefore you can implement the endpoints `GET /collections/{collection_id}/items` and `GET /collections/{collection_id}/items/{feature_id}` to support retrieval of individual items. To benefit from the STAC ecosystem and allow searching for items you can also implement `POST /search` and `GET /search`. Further information can be found in the [STAC API repository](https://github.com/radiantearth/stac-api-spec).
 
       ### API Extensions
       
@@ -724,10 +720,7 @@ paths:
                       Links related to this service, e.g. the homepage of
                       the service provider or the terms of service.
 
-                      It is highly RECOMMENDED to provide links with the
-                      following `rel` (relation) types:
-
-                      1. `terms-of-service`: A link to the terms of service. If
+                      1. `terms-of-service` (optional): A link to the terms of service. If
                       a back-end provides a link to the terms of service, the
                       clients MUST provide a way to read the terms of service
                       and only connect to the back-end after the user agreed to
@@ -735,7 +728,7 @@ paths:
                       the terms of service are not agreed to by default, i.e.
                       the user MUST explicitly agree to them.
 
-                      2. `privacy-policy`: A link to the privacy policy (GDPR).
+                      2. `privacy-policy` (optional): A link to the privacy policy (GDPR).
                       If a back-end provides a link to a privacy policy, the
                       clients MUST provide a way to read the privacy policy and
                       only connect to the back-end after the user agreed to
@@ -743,21 +736,21 @@ paths:
                       the privacy policy is not agreed to by default, i.e. the
                       user MUST explicitly agree to them.
 
-                      3. `service-desc` or `service-doc`: A link to the API definition.
+                      3. `service-desc` (required) and `service-doc` (optional):
+                      A link to the API definition.
                       Use `service-desc` for machine-readable API definition and 
                       `service-doc` for human-readable API definition.
-                      Required if full OGC API compatibility is desired.
 
-                      4. `conformance`: A link to the Conformance declaration
+                      4. `conformance` (required): A link to the Conformance declaration
                       (see `/conformance`). 
                       Required if full OGC API compatibility is desired.
 
-                      5. `data`: A link to the collections (see `/collections`).
+                      5. `data` (required): A link to the collections (see `/collections`).
                       Required if full OGC API compatibility is desired.
 
-                      6. `create-form`: A link to a user registration page.
+                      6. `create-form` (optional): A link to a user registration page.
 
-                      7. `recovery-form`: A link to a page where a user can
+                      7. `recovery-form` (optional): A link to a page where a user can
                       recover a user account (e.g. to reset the password or send
                       a reminder about the username to the user's email account).
 
@@ -791,6 +784,10 @@ paths:
                         rel: conformance
                         type: application/json
                         title: OGC Conformance Classes
+                      - href: 'https://cloud.example/api/v1/openapi.json'
+                        rel: service-desc
+                        type: application/vnd.oai.openapi+json;version=3.0
+                        title: OpenAPI 3.0 description of the API
                       - href: 'https://cloud.example/api/v1/collections'
                         rel: data
                         type: application/json
@@ -1362,8 +1359,7 @@ paths:
         This endpoints provides a JSON Schema for each queryable that geodatacube
         users can use in multiple scenarios:
         1. For loading data from the collection, e.g. in the process `load_collection`.
-        2. For filtering items using CQL2 on the `/collections/{collection_id}/items` endpoint
-           (if [STAC API - Features is implemented in addition to the geodatacube API](#tag/EO-Data-Discovery/STAC)).
+        2. For filtering items using CQL2 on the `/collections/{collection_id}/items` endpoint.
 
         Note: Providing the Bearer token is REQUIRED for private collections.
       tags:
@@ -1402,7 +1398,97 @@ paths:
                       - sentinel-2a
                       - sentinel-2b
                 additionalProperties: false
+        4XX:
+          $ref: '#/components/responses/client_error_auth'
+        5XX:
+          $ref: '#/components/responses/server_error'
+  "/collections/{collection_id}/items":
+    get:
+      tags:
+        - EO Data Discovery
+      summary: Fetch Features / Items
+      description: |-
+        Fetch features of the feature collection with id `collection_id`.
 
+        Every feature in a dataset belongs to a collection. A dataset may
+        consist of multiple feature collections. A feature collection is often a
+        collection of features of a similar type, based on a common schema.
+      operationId: list-items
+      parameters:
+        - $ref: '#/components/parameters/collection_id'
+        - $ref: "#/components/parameters/pagination_limit"
+        - $ref: "#/components/parameters/bbox"
+        - $ref: "#/components/parameters/datetime"
+      responses:
+        "200":
+          description: |-
+            The response is a document consisting of features in the collection.
+            The features included in the response are determined by the server
+            based on the query parameters of the request. To support access to
+            larger collections without overloading the client, the API supports
+            paged access with links to the next page, if more features are selected
+            that the page size.
+
+            The `bbox` and `datetime` parameter can be used to select only a
+            subset of the features in the collection (the features that are in the
+            bounding box or time interval). The `bbox` parameter matches all features
+            in the collection that are not associated with a location, too. The
+            `datetime` parameter matches all features in the collection that are
+            not associated with a time stamp or interval, too.
+
+            The `limit` parameter may be used to control the subset of the
+            selected features that should be returned in the response, the page size.
+            Each page may include information about the number of selected and
+            returned features (`numberMatched` and `numberReturned`) as well as
+            links to support paging (link relation `next`).
+          content:
+            application/geo+json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/GeoJsonFeatureCollection'
+                  - type: object
+                    required:
+                      - features
+                    properties:
+                      features:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/stac_item'
+                      links:
+                        $ref: "#/components/schemas/links"
+                      timeStamp:
+                        $ref: "#/components/schemas/timeStamp"
+                      numberMatched:
+                        $ref: "#/components/schemas/numberMatched"
+                      numberReturned:
+                        $ref: "#/components/schemas/numberReturned"
+        4XX:
+          $ref: '#/components/responses/client_error_auth'
+        5XX:
+          $ref: '#/components/responses/server_error'
+  "/collections/{collection_id}/items/{feature_id}":
+    get:
+      tags:
+        - EO Data Discovery
+      summary: Fetch a single Feature / Item
+      description: |-
+        Fetch the feature with id `feature_id` in the feature collection
+        with id `collection_id`.
+      operationId: describe-item
+      parameters:
+        - $ref: '#/components/parameters/collection_id'
+        - $ref: "#/components/parameters/feature_id"
+      responses:
+        "200":
+          description: |-
+            fetch the feature with id `feature_id` in the feature collection
+            with id `collectionId`
+          content:
+            application/geo+json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/GeoJsonFeature'
+                  - $ref: '#/components/schemas/stac_item'
         4XX:
           $ref: '#/components/responses/client_error_auth'
         5XX:
@@ -2796,6 +2882,30 @@ paths:
           $ref: '#/components/responses/server_error'
 components:
   schemas:
+    numberMatched:
+      description: |-
+        The number of features of the feature type that match the selection
+        parameters like `bbox`.
+      type: integer
+      minimum: 0
+      example: 127
+    numberReturned:
+      description: |-
+        The number of features in the feature collection.
+
+        A server may omit this information in a response, if the information
+        about the number of features is not known or difficult to compute.
+
+        If the value is provided, the value must be identical to the number
+        of items in the "features" array.
+      type: integer
+      minimum: 0
+      example: 10
+    timeStamp:
+      description: This property indicates the time and date when the response was generated.
+      type: string
+      format: date-time
+      example: "2017-08-17T08:05:32Z"
     conformsTo:
       description: |-
         Lists all conformance classes specified in various standards that the
@@ -2807,15 +2917,137 @@ components:
         format: uri
       example:
         - https://api.geodatacube.example/1.0.0-beta
+        - https://api.stacspec.org/v1.0.0/core
         - https://api.stacspec.org/v1.0.0/collections
+        - https://api.stacspec.org/v1.0.0/ogcapi-features
+        - http://www.opengis.net/spec/ogcapi-features-1/1.0/conf/core
+        - http://www.opengis.net/spec/ogcapi-features-1/1.0/conf/oas30
+        - http://www.opengis.net/spec/ogcapi-features-1/1.0/conf/geojson
+    stac_item_type:
+      type: string
+      description: >-
+        The GeoJSON type that applies to this metadata document,
+        which MUST always be a "Feature" according to the STAC specification.
+
+        This type does **not** describe the spatial data type of the assets.
+      enum:
+        - Feature
+    stac_item_geometry:
+      description: |-
+        Defines the full footprint of the assets represented by this item as
+        GeoJSON Geometry.
+
+        Results without a known location can set this value to `null`.
+      nullable: true
+      allOf:
+        - $ref: '#/components/schemas/GeoJsonGeometry'
+      example:
+        type: Polygon
+        coordinates:
+          - - - -180
+              - -90
+            - - 180
+              - -90
+            - - 180
+              - 90
+            - - -180
+              - 90
+            - - -180
+              - -90
+    stac_item_properties:
+      type: object
+      title: Item Properties
+      description: >-
+        MAY contain additional properties other than the required property `datetime`,
+        e.g. custom properties or properties from the STAC specification or STAC extensions.
+      required:
+        - datetime
+      additionalProperties: true
+      properties:
+        datetime:
+          title: Date and Time
+          description: >-
+            The searchable date/time of the data, in UTC. Formatted as a
+            [RFC 3339](https://www.rfc-editor.org/rfc/rfc3339.html) date-time.
+
+
+            If this field is set to `null` (usually for larger time ranges),
+            it is STRONGLY RECOMMENDED to specify both `start_datetime` and
+            `end_datetime` for STAC compliance.
+          type: string
+          format: date-time
+          nullable: true
+        start_datetime:
+          type: string
+          format: date-time
+          description: >-
+            For time series: The first or start date and time for the data,
+            in UTC. Formatted as a [RFC
+            3339](https://www.rfc-editor.org/rfc/rfc3339.html) date-time.
+        end_datetime:
+          type: string
+          format: date-time
+          description: >-
+            For time series: The last or end date and time for the data, in
+            UTC. Formatted as a [RFC 3339](https://www.rfc-editor.org/rfc/rfc3339.html)
+            date-time.
+        title:
+          $ref: '#/components/schemas/eo_title'
+        description:
+          $ref: '#/components/schemas/eo_description'
+        license:
+          $ref: '#/components/schemas/stac_license'
+        providers:
+          $ref: '#/components/schemas/stac_providers'
+        created:
+          $ref: '#/components/schemas/created'
+        updated:
+          $ref: '#/components/schemas/updated'
+        expires:
+          type: string
+          format: date-time
+          description: >-
+            Time until which the assets are accessible, in UTC. Formatted as
+            a [RFC 3339](https://www.rfc-editor.org/rfc/rfc3339.html) date-time.
+          example: '2020-11-01T00:00:00Z'
+    stac_item:
+      title: A STAC Item
+      description: The STAC specification should be the main guidance for implementing this.
+      type: object
+      required:
+        - stac_version
+        - id
+        - type
+        - geometry
+        - properties
+        - assets
+        - links
+      properties:
+        stac_version:
+          $ref: '#/components/schemas/stac_version'
+        stac_extensions:
+          $ref: '#/components/schemas/stac_extensions'
+        id:
+          type: string
+        type:
+          $ref: '#/components/schemas/stac_item_type'
+        bbox:
+          $ref: '#/components/schemas/bbox'
+        geometry:
+          $ref: '#/components/schemas/stac_item_geometry'
+        properties:
+          $ref: '#/components/schemas/stac_item_properties'
+        assets:
+          $ref: '#/components/schemas/stac_assets'
+        links:
+          $ref: '#/components/schemas/links'
     batch_job_result:
       title: Batch Job Results Response as STAC Item
       description:
         The STAC specification should be the main guidance for implementing this.
 
-        Specifying the `bbox` is strongly RECOMMENDED for STAC compliance,
-        but can be omitted if the result is unlocated and the `geometry`
-        is set to `null`.
+        Specifying the `bbox` is strongly RECOMMENDED, but can be omitted if the
+        result is unlocated and the `geometry` is set to `null`.
       type: object
       required:
         - stac_version
@@ -2833,94 +3065,13 @@ components:
         id:
           $ref: '#/components/schemas/job_id'
         type:
-          type: string
-          description: >-
-            The GeoJSON type that applies to this metadata document,
-            which MUST always be a "Feature" according to the STAC specification.
-
-            This type does **not** describe the spatial data type of the assets.
-          enum:
-            - Feature
+          $ref: '#/components/schemas/stac_item_type'
         bbox:
           $ref: '#/components/schemas/bbox'
         geometry:
-          description: |-
-            Defines the full footprint of the asset represented by this item as
-            GeoJSON Geometry.
-
-            Results without a known location can set this value to `null`.
-          nullable: true
-          allOf:
-            - $ref: '#/components/schemas/GeoJsonGeometry'
-          example:
-            type: Polygon
-            coordinates:
-              - - - -180
-                  - -90
-                - - 180
-                  - -90
-                - - 180
-                  - 90
-                - - -180
-                  - 90
-                - - -180
-                  - -90
+          $ref: '#/components/schemas/stac_item_geometry'
         properties:
-          type: object
-          title: Item Properties
-          description: >-
-            MAY contain additional properties other than the required property `datetime`,
-            e.g. custom properties or properties from the STAC specification or STAC extensions.
-          required:
-            - datetime
-          additionalProperties: true
-          properties:
-            datetime:
-              title: Date and Time
-              description: >-
-                The searchable date/time of the data, in UTC. Formatted as a
-                [RFC 3339](https://www.rfc-editor.org/rfc/rfc3339.html) date-time.
-
-
-                If this field is set to `null` (usually for larger time ranges),
-                it is STRONGLY RECOMMENDED to specify both `start_datetime` and
-                `end_datetime` for STAC compliance.
-              type: string
-              format: date-time
-              nullable: true
-            start_datetime:
-              type: string
-              format: date-time
-              description: >-
-                For time series: The first or start date and time for the data,
-                in UTC. Formatted as a [RFC
-                3339](https://www.rfc-editor.org/rfc/rfc3339.html) date-time.
-            end_datetime:
-              type: string
-              format: date-time
-              description: >-
-                For time series: The last or end date and time for the data, in
-                UTC. Formatted as a [RFC 3339](https://www.rfc-editor.org/rfc/rfc3339.html)
-                date-time.
-            title:
-              $ref: '#/components/schemas/eo_title'
-            description:
-              $ref: '#/components/schemas/eo_description'
-            license:
-              $ref: '#/components/schemas/stac_license'
-            providers:
-              $ref: '#/components/schemas/stac_providers'
-            created:
-              $ref: '#/components/schemas/created'
-            updated:
-              $ref: '#/components/schemas/updated'
-            expires:
-              type: string
-              format: date-time
-              description: >-
-                Time until which the assets are accessible, in UTC. Formatted as
-                a [RFC 3339](https://www.rfc-editor.org/rfc/rfc3339.html) date-time.
-              example: '2020-11-01T00:00:00Z'
+          $ref: '#/components/schemas/stac_item_properties'
         assets:
           $ref: '#/components/schemas/stac_assets'
         links:
@@ -2964,10 +3115,7 @@ components:
           type: array
           description: >-
             Specifies the supported GIS spatial data types for this format.
-
-            It is RECOMMENDED to specify at least one of the data types, which
-            will likely become a requirement in a future API version.
-        # minItems: 1
+          minItems: 1
           items:
             type: string
             enum:
@@ -3012,6 +3160,17 @@ components:
         4. `last` (OPTIONAL): A link to the last page, except on the last page.
 
         For additional relation types see also the lists of
+        [common relation types](#section/API-Principles/Web-Linking).
+      type: array
+      items:
+        $ref: '#/components/schemas/link'
+    links:
+      description: |-
+        Links related to this list of resources, for example links for pagination
+        or alternative formats such as a human-readable HTML version.
+        The links array MUST NOT be paginated.
+
+        For relation types see also the lists of
         [common relation types](#section/API-Principles/Web-Linking).
       type: array
       items:
@@ -3589,14 +3748,13 @@ components:
         - $ref: '#/components/schemas/dimension'
         - title: Additional Dimension
           type: object
-# This is not supported by ReDoc yet:
-#         oneOf:
-#           - title: Additional Dimension with Extent
-#             required:
-#               - extent
-#           - title: Additional Dimension with Values
-#             required:
-#               - values
+          oneOf:
+            - title: Additional Dimension with Extent
+              required:
+                - extent
+            - title: Additional Dimension with Values
+              required:
+                - values
           properties:
             extent:
               $ref: '#/components/schemas/collection_dimension_extent_open'
@@ -4996,12 +5154,6 @@ components:
         properties:
           type: object
           nullable: true
-    GeoJson:
-      title: GeoJSON
-      oneOf:
-        - $ref: '#/components/schemas/GeoJsonFeatureCollection'
-        - $ref: '#/components/schemas/GeoJsonFeature'
-        - $ref: '#/components/schemas/GeoJsonGeometry'
     GeoJsonGeometry:
       title: GeoJSON Geometry
       type: object
@@ -5411,6 +5563,78 @@ components:
       required: true
       schema:
         $ref: '#/components/schemas/collection_id'
+    bbox:
+      name: bbox
+      in: query
+      description: |-
+        Only features that have a geometry that intersects the bounding box are selected.
+        The bounding box is provided as four or six numbers, depending on whether the
+        coordinate reference system includes a vertical axis (height or depth):
+
+        * Lower left corner, coordinate axis 1
+        * Lower left corner, coordinate axis 2
+        * Minimum value, coordinate axis 3 (optional)
+        * Upper right corner, coordinate axis 1
+        * Upper right corner, coordinate axis 2
+        * Maximum value, coordinate axis 3 (optional)
+
+        The coordinate reference system of the values is WGS 84 longitude/latitude
+        (http://www.opengis.net/def/crs/OGC/1.3/CRS84).
+
+        For WGS 84 longitude/latitude the values are in most cases the sequence of
+        minimum longitude, minimum latitude, maximum longitude and maximum latitude.
+        However, in cases where the box spans the antimeridian the first value
+        (west-most box edge) is larger than the third value (east-most box edge).
+
+        If the vertical axis is included, the third and the sixth number are
+        the bottom and the top of the 3-dimensional bounding box.
+
+        If a feature has multiple spatial geometry properties, it is the decision of the
+        server whether only a single spatial geometry property is used to determine
+        the extent or all relevant geometries.
+      required: false
+      schema:
+        type: array
+        oneOf:
+          - minItems: 4
+            maxItems: 4
+          - minItems: 6
+            maxItems: 6
+        items:
+          type: number
+      style: form
+      explode: false
+    datetime:
+      name: datetime
+      in: query
+      description: |-
+        Either a date-time or an interval, open or closed. Date and time expressions
+        adhere to RFC 3339. Open intervals are expressed using double-dots.
+
+        Examples:
+
+        * A date-time: "2018-02-12T23:20:50Z"
+        * A closed interval: "2018-02-12T00:00:00Z/2018-03-18T12:31:12Z"
+        * Open intervals: "2018-02-12T00:00:00Z/.." or "../2018-03-18T12:31:12Z"
+
+        Only features that have a temporal property that intersects the value of
+        `datetime` are selected.
+
+        If a feature has multiple temporal properties, it is the decision of the
+        server whether only a single temporal property is used to determine
+        the extent or all relevant temporal properties.
+      required: false
+      schema:
+        type: string
+      style: form
+      explode: false
+    feature_id:
+      name: feature_id
+      in: path
+      description: local identifier of a feature
+      required: true
+      schema:
+        type: string
   examples:
     evi_user_defined_process:
       description: A user-defined process that computes the EVI.
