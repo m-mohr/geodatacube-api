@@ -13,3 +13,6 @@
 - No support for UDFs (`/udf_runtimes`)
 - No support for OIDC (`/credentials/oidc`)
 - Removal of `OpenEO-Costs` header
+
+## Additions
+- Addition of `/collections/{collection_id}/items` and `/collections/{collection_id}/items/{feature_id}` (OGC API - Features and STAC API - Features)
