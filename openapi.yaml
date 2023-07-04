@@ -1,7 +1,7 @@
 openapi: 3.0.2
 info:
   title: geodatacube API
-  version: 1.2.0
+  version: 1.0.0-beta
   description: |-
     The geodatacube API specification for interoperable cloud-based processing of large Earth observation datacubes.
 
