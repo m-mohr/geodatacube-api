@@ -1,11 +1,9 @@
 openapi: 3.0.2
 info:
-  title: openEO API
+  title: geodatacube API
   version: 1.2.0
   description: |-
-    The openEO API specification for interoperable cloud-based processing of large Earth observation datasets.
-
-    **Conformance class:** `https://api.openeo.org/1.2.0`
+    The geodatacube API specification for interoperable cloud-based processing of large Earth observation datacubes.
 
     # API Principles
 
@@ -17,7 +15,7 @@ info:
 
     Unless otherwise stated the API works **case sensitive**.
 
-    All names SHOULD be written in snake case, i.e. words are separated with one underscore character (`_`) and no spaces, with all letters lower-cased. Example: `hello_world`. This applies particularly to endpoints and JSON property names. HTTP header fields are generally case-insensitive according to [RFC 7230](https://www.rfc-editor.org/rfc/rfc7230.html#section-3.2) and in the specification we follow their respective casing conventions, e.g. `Content-Type` or `OpenEO-Costs`, for better readability and consistency.
+    All names SHOULD be written in snake case, i.e. words are separated with one underscore character (`_`) and no spaces, with all letters lower-cased. Example: `hello_world`. This applies particularly to endpoints and JSON property names. HTTP header fields are generally case-insensitive according to [RFC 7230](https://www.rfc-editor.org/rfc/rfc7230.html#section-3.2) and in the specification we follow their respective casing conventions, e.g. `Content-Type` or `OpenEO-Identifier`, for better readability and consistency.
 
     ## HTTP / REST
 
@@ -58,8 +56,8 @@ info:
     4. `canonical`: This relation type usually points to a publicly accessible and more long-lived URL for a resource that otherwise often requires (Bearer) authentication with a short-lived token.
     This way the the exposed resources can be used by non-openEO clients without additional authentication steps.
     For example, a shared user-defined process or batch job results could be exposed via a canonical link.
-    If a URL should be publicly available to everyone, it can simply a user-specific URL, e.g. `https://openeo.example/processes/john_doe/ndvi`.
-    For resources that should only be accessible to a certain group of user, a signed URL could be given, e.g. `https://openeo.example/processes/81zjh1tc2pt52gbx/ndvi`.
+    If a URL should be publicly available to everyone, it can simply a user-specific URL, e.g. `https://geodatacube.example/processes/john_doe/ndvi`.
+    For resources that should only be accessible to a certain group of user, a signed URL could be given, e.g. `https://geodatacube.example/processes/81zjh1tc2pt52gbx/ndvi`.
 
     Generally, it is RECOMMENDED to add descriptive titles (propertty `title`) and media type information (propertty `type`) for a better user experience.
 
@@ -82,14 +80,14 @@ info:
       "id": "936DA01F-9ABD-4D9D-80C7-02AF85C822A8",
       "code": "SampleError",
       "message": "A sample error message.",
-      "url": "https://openeo.example/docs/errors/SampleError"
+      "url": "https://geodatacube.example/docs/errors/SampleError"
     }
     ```
 
     Sending `code` and `message` is REQUIRED. 
 
     * A back-end MAY add a free-form `id` (unique identifier) to the error response to be able to log and track errors with further non-disclosable details.
-    * The `code` is either one of the [standardized textual openEO error codes](errors.json) or a proprietary error code.
+    * The `code` is proprietary textual error code.
     * The `message` explains the reason the server is rejecting the request. For "4xx" error codes the message explains how the client needs to modify the request.
 
       By default the message MUST be sent in English language. Content Negotiation is used to localize the error messages: If an `Accept-Language` header is sent by the client and a translation is available, the message should be translated accordingly and the `Content-Language` header must be present in the response. See "[How to localize your API](http://apiux.com/2013/04/25/how-to-localize-your-api/)" for more information.
@@ -172,7 +170,7 @@ info:
     | Name                             | Description                                                  | Example |
     | -------------------------------- | ------------------------------------------------------------ | ------- |
     | Access-Control-Allow-Origin      | Allowed origin for the request, including protocol, host and port or `*` for all origins. It is RECOMMENDED to return the value `*` to allow requests from browser-based implementations such as the Web Editor. | `*` |
-    | Access-Control-Expose-Headers    | Some endpoints require to send additional HTTP response headers such as `OpenEO-Identifier` and `Location`. To make these headers available to browser-based clients, they MUST be white-listed with this CORS header. The following HTTP headers are white-listed by browsers and MUST NOT be included: `Cache-Control`, `Content-Language`, `Content-Length`, `Content-Type`, `Expires`, `Last-Modified` and `Pragma`. At least the following headers MUST be listed in this version of the openEO API: `Link`, `Location`, `OpenEO-Costs` and `OpenEO-Identifier`. | `Link, Location, OpenEO-Costs, OpenEO-Identifier` |
+    | Access-Control-Expose-Headers    | Some endpoints require to send additional HTTP response headers such as `OpenEO-Identifier` and `Location`. To make these headers available to browser-based clients, they MUST be white-listed with this CORS header. The following HTTP headers are white-listed by browsers and MUST NOT be included: `Cache-Control`, `Content-Language`, `Content-Length`, `Content-Type`, `Expires`, `Last-Modified` and `Pragma`. At least the following headers MUST be listed in this version of the openEO API: `Link`, `Location`, and `OpenEO-Identifier`. | `Link, Location, OpenEO-Identifier` |
     
     
     
@@ -182,7 +180,7 @@ info:
     
     ```http
     POST /api/v1/jobs HTTP/1.1
-    Host: openeo.example
+    Host: geodatacube.example
     Origin: https://company.example:8080
     Authorization: Bearer basic//ZXhhbXBsZTpleGFtcGxl
     ```
@@ -192,9 +190,9 @@ info:
     ```http
     HTTP/1.1 201 Created
     Access-Control-Allow-Origin: *
-    Access-Control-Expose-Headers: Location, OpenEO-Identifier, OpenEO-Costs, Link
+    Access-Control-Expose-Headers: Location, OpenEO-Identifier, Link
     Content-Type: application/json
-    Location: https://openeo.example/api/v1/jobs/abc123
+    Location: https://geodatacube.example/api/v1/jobs/abc123
     OpenEO-Identifier: abc123
     ```
     
@@ -215,7 +213,7 @@ info:
     
     ```http
     OPTIONS /api/v1/jobs HTTP/1.1
-    Host: openeo.example
+    Host: geodatacube.example
     Origin: https://company.example:8080
     Access-Control-Request-Method: POST 
     Access-Control-Request-Headers: Authorization, Content-Type
@@ -230,7 +228,7 @@ info:
     Access-Control-Allow-Origin: *
     Access-Control-Allow-Methods: OPTIONS, GET, POST, PATCH, PUT, DELETE
     Access-Control-Allow-Headers: Authorization, Content-Type
-    Access-Control-Expose-Headers: Location, OpenEO-Identifier, OpenEO-Costs, Link
+    Access-Control-Expose-Headers: Location, OpenEO-Identifier, Link
     Content-Type: application/json
     ```
 
@@ -514,8 +512,7 @@ tags:
 
       The data discovery endpoints `GET /collections` and `GET /collections/{collection_id}` are compatible with OGC API - Features and STAC. Both specifications define additional endpoints that need to be implemented to be fully compatible. The additional endpoints can easily be integrated into an openEO API implementation. A rough list of actions for compatibility is available below, but please refer to their specifications to find out the full details.
 
-      **Important:** [STAC specification](https://github.com/radiantearth/stac-spec) and [STAC API](https://github.com/radiantearth/stac-api-spec) are different specifications and have different version numbers after version 0.9.0.
-      The openEO API implements STAC API versions >= 0.9.0 (preferrably [STAC API version 1.0.0](https://github.com/radiantearth/stac-api-spec/blob/v1.0.0/README.md), but [0.9.0](https://github.com/radiantearth/stac-spec/blob/v0.9.0/api-spec/README.md) is allowed for backward compatibility), which allows to serve all STAC specification versions in the range of 0.9.x and 1.x.x (see the `stac_version` property).
+      The openEO API implements STAC API versions >= 1.0.0.
       
       ### Content Extensions
       
@@ -533,7 +530,7 @@ tags:
       
       ### Provide data for download
       
-      If you'd like to provide your data for download in addition to offering the cloud processing service, you can implement the full STAC API. Therefore you can implement the endpoints `GET /collections/{collection_id}/items` and `GET /collections/{collection_id}/items/{feature_id}` to support retrieval of individual items. To benefit from the STAC ecosystem and allow searching for items you can also implement `POST /search` and `GET /search`. Further information can be found in the [STAC API repository](https://github.com/radiantearth/stac-spec/tree/v0.9.0/api-spec).
+      If you'd like to provide your data for download in addition to offering the cloud processing service, you can implement the full STAC API. Therefore you can implement the endpoints `GET /collections/{collection_id}/items` and `GET /collections/{collection_id}/items/{feature_id}` to support retrieval of individual items. To benefit from the STAC ecosystem and allow searching for items you can also implement `POST /search` and `GET /search`. Further information can be found in the [STAC API repository](https://github.com/radiantearth/stac-api-spec).
 
       ### API Extensions
       
@@ -552,7 +549,7 @@ tags:
   - name: File Storage
     description: Management of user-uploaded assets and processed data.
 servers:
-  - url: 'https://openeo.example/api/{version}'
+  - url: 'https://geodatacube.example/api/{version}'
     description: >-
       The URL of the API MAY freely be chosen by the back-end providers. The
       path, including API versioning, is a *recommendation* only. Nevertheless,
@@ -611,6 +608,7 @@ paths:
                   - stac_version
                   - endpoints
                   - links
+                  - conformsTo
                 properties:
                   api_version:
                     type: string
@@ -728,105 +726,6 @@ paths:
                           - GET
                           - DELETE
                           - PATCH
-                  billing:
-                    title: Billing
-                    description: >-
-                      Billing related data, e.g. the currency used or available
-                      plans to process jobs.
-                      
-                      This property MUST be specified if the back-end uses any
-                      billing related API functionalities, e.g. budgeting or
-                      estimates.
-                      
-                      The absence of this property doesn't mean the back-end is
-                      necessarily free to use for all. Providers may choose to
-                      bill users outside of the API, e.g. with a monthly fee
-                      that is not depending on individual API interactions.
-                    type: object
-                    required:
-                      - currency
-                    properties:
-                      currency:
-                        description: >-
-                          The currency the back-end is billing in. The currency
-                          MUST be either a valid currency code as defined in
-                          ISO-4217 or a back-end specific unit that is used for
-                          billing such as credits, tiles or CPU hours.
-                          If set to `null`, budget and costs are not supported
-                          by the back-end and users can't be charged.
-                        type: string
-                        nullable: true
-                        example: USD
-                      default_plan:
-                        type: string
-                        description: |-
-                          Name of the plan the back-end uses for billing in case 
-                          1. the user has not subscribed to a specific plan
-                             (see `default_plan` in `GET /me`) and
-                          2. also did not provide a specific plan with the
-                             processing request.
-
-                          If a free plan is available at the back-end, it is 
-                          probably most useful to provide this as the back-end
-                          wide default plan and override it with paid plans through
-                          the user-specific default plan in `GET /me`.
-                          Otherwise, users that have not set up payment yet MAY
-                          receive an error for each processing requests where
-                          they did not provide a free plan specifically.
-                        example: free
-                      plans:
-                        description: Array of plans
-                        type: array
-                        items:
-                          title: Billing Plan
-                          type: object
-                          required:
-                            - name
-                            - description
-                            - paid
-                          properties:
-                            name:
-                              type: string
-                              description: >-
-                                Name of the plan. It MUST be accepted in a *case
-                                insensitive* manner throughout the API.
-                              example: free
-                            description:
-                              type: string
-                              format: commonmark
-                              description: >-
-                                A description that gives a rough overview over
-                                the plan.
-
-
-                                [CommonMark 0.29](http://commonmark.org/) syntax
-                                MAY be used for rich text representation.
-                              example: Free plan for testing.
-                            paid:
-                              type: boolean
-                              description: >-
-                                Indicates whether the plan is a paid plan
-                                (`true`) or a free plan (`false`).
-                            url:
-                              type: string
-                              description: >-
-                                URL to a web page with more details about the
-                                plan.
-                              format: uri
-                              example: 'https://cloud.example/plans/free-plan'
-                        example:
-                          - name: free
-                            description: >-
-                              Free plan. Calculates one tile per second and a
-                              maximum amount of 100 tiles per hour.
-                            url: 'https://cloud.example/plans/free-plan'
-                            paid: false
-                          - name: premium
-                            description: >-
-                              Premium plan. Calculates unlimited tiles and each
-                              calculated tile costs 0.003 USD.
-                            url: 'https://cloud.example/plans/premium-plan'
-                            paid: true
                   links:
                     description: |-
                       Links related to this service, e.g. the homepage of
@@ -953,11 +852,11 @@ paths:
               given by the user.
 
         **This URI MUST NOT be versioned as the other endpoints.**
-        If your API is available at `https://openeo.example/api/v1`, and
-        you instruct your API users to use `https://openeo.example` as connection URI, 
-        the Well-Known URI SHOULD be located at `https://openeo.example/.well-known/openeo`.
+        If your API is available at `https://geodatacube.example/api/v1`, and
+        you instruct your API users to use `https://geodatacube.example` as connection URI, 
+        the Well-Known URI SHOULD be located at `https://geodatacube.example/.well-known/openeo`.
         The Well-Known URI is usually directly located at the top-level, but it is not a
-        requirement. For example, `https://openeo.example/eo/.well-known/openeo` is also allowed.
+        requirement. For example, `https://geodatacube.example/eo/.well-known/openeo` is also allowed.
 
         Clients MAY get additional information (e.g. title or description) about
         a back-end from the most recent version that has the `production` flag
@@ -967,7 +866,7 @@ paths:
       security:
         - {}
       servers:
-        - url: 'https://openeo.example'
+        - url: 'https://geodatacube.example'
           description: >-
             The Well-Known URI SHOULD be available directly at
             `https://{{domain}}/.well-known/openeo` in contrast to the other
@@ -999,7 +898,7 @@ paths:
                           type: string
                           format: uri
                           description: '*Absolute* URLs to the service.'
-                          example: 'https://openeo.example/api/v1'
+                          example: 'https://geodatacube.example/api/v1'
                         production:
                           $ref: '#/components/schemas/production'
                         api_version:
@@ -1009,11 +908,11 @@ paths:
                             back-end implements.
               example:
                 versions:
-                  - url: 'https://openeo.example/api/v0'
+                  - url: 'https://geodatacube.example/api/v0'
                     api_version: 0.5.1
-                  - url: 'https://openeo.example/api/v1'
+                  - url: 'https://geodatacube.example/api/v1'
                     api_version: 1.2.0
-                  - url: 'https://dev.openeo.example/api/v2'
+                  - url: 'https://dev.geodatacube.example/api/v2'
                     production: false
                     api_version: 2.0.0-beta
         4XX:
@@ -1193,9 +1092,6 @@ paths:
         Otherwise, the implemented functionality can usually be retrieved from
         the [capabilties](#tag/Capabilities/operation/capabilities) in openEO.
 
-        The general openEO conformance class is `https://api.openeo.org/1.2.0`.
-        See the individual openEO API extensions for their conformance classes.
-
         The conformance classes listed at this endpoint and listed in the 
         corresponding `conformsTo` property in `GET /` MUST be equal.
 
@@ -1232,7 +1128,7 @@ paths:
         To get the full metadata for a collection clients MUST
         request `GET /collections/{collection_id}`.
 
-        This endpoint is compatible with [STAC API 0.9.0 and later](https://stacspec.org) and
+        This endpoint is compatible with [STAC API 1.0.0 and later](https://stacspec.org) and
         [OGC API - Features 1.0](http://docs.opengeospatial.org/is/17-069r3/17-069r3.html).
         [STAC API extensions](https://stac-api-extensions.github.io) and
         [STAC extensions](https://stac-extensions.github.io)
@@ -1345,11 +1241,11 @@ paths:
                             - null
                     links:
                       - rel: license
-                        href: 'https://openeo.example/api/v1/collections/MOD09Q1/license'
+                        href: 'https://geodatacube.example/api/v1/collections/MOD09Q1/license'
                 links:
                   - rel: alternate
-                    href: 'https://openeo.example/csw'
-                    title: openEO catalog (OGC Catalogue Services 3.0)
+                    href: 'https://geodatacube.example/csw'
+                    title: OGC Catalogue Services 3.0
         4XX:
           $ref: '#/components/responses/client_error_auth'
         5XX:
@@ -1362,7 +1258,7 @@ paths:
         Lists **all** information about a specific collection specified by the
         identifier `collection_id`.
 
-        This endpoint is compatible with [STAC API 0.9.0 and later](https://stacspec.org) and
+        This endpoint is compatible with [STAC API 1.0.0 and later](https://stacspec.org) and
         [OGC API - Features 1.0](http://docs.opengeospatial.org/is/17-069r3/17-069r3.html).
         [STAC API extensions](https://stac-api-extensions.github.io) and
         [STAC extensions](https://stac-extensions.github.io)
@@ -1433,18 +1329,18 @@ paths:
                     href: https://scihub.copernicus.eu/twiki/pub/SciHubWebPortal/TermsConditions/Sentinel_Data_Terms_and_Conditions.pdf
                     type: application/pdf
                   - rel: http://www.opengis.net/def/rel/ogc/1.0/queryables
-                    href: https://openeo.example/api/v1/collections/Sentinel-2A/queryables
+                    href: https://geodatacube.example/api/v1/collections/Sentinel-2A/queryables
                     type: application/schema+json
                   - rel: about
                     href: https://earth.esa.int/web/sentinel/user-guides/sentinel-2-msi/product-types/level-1c
                     type: text/html
                     title: ESA Sentinel-2 MSI Level-1C User Guide
                   - rel: example
-                    href: 'https://openeo.example/api/v1/collections/Sentinel-2/examples/true-color.json'
+                    href: 'https://geodatacube.example/api/v1/collections/Sentinel-2/examples/true-color.json'
                     type: application/json
                     title: Example Process for True-Color Visualization
                   - rel: example
-                    href: 'https://openeo.example/api/v1/collections/Sentinel-2/examples/ndvi.json'
+                    href: 'https://geodatacube.example/api/v1/collections/Sentinel-2/examples/ndvi.json'
                     type: application/json
                     title: Example Process for NDVI Calculation and Visualization
                 'cube:dimensions':
@@ -1557,13 +1453,13 @@ paths:
                     maximum: 32660
                 assets:
                   thumbnail:
-                    href: 'https://openeo.example/api/v1/collections/Sentinel-2/thumbnail.png'
+                    href: 'https://geodatacube.example/api/v1/collections/Sentinel-2/thumbnail.png'
                     type: image/png
                     title: Preview
                     roles:
                       - thumbnail
                   inspire:
-                    href: 'https://openeo.example/api/v1/collections/Sentinel-2/inspire.xml'
+                    href: 'https://geodatacube.example/api/v1/collections/Sentinel-2/inspire.xml'
                     type: application/xml
                     title: INSPIRE metadata
                     description: INSPIRE compliant XML metadata
@@ -1612,7 +1508,7 @@ paths:
                 $ref: '#/components/schemas/json_schema'
               example:
                 $schema: https://json-schema.org/draft/2019-09/schema
-                $id: https://openeo.example/api/v1/collections/Sentinel-2A/queryables
+                $id: https://geodatacube.example/api/v1/collections/Sentinel-2A/queryables
                 type: object
                 title: Sentinel 2A
                 properties:
@@ -1758,326 +1654,9 @@ paths:
                         title: IEEE Standard 754-2019 for Floating-Point Arithmetic
                 links:
                   - rel: alternate
-                    href: 'https://openeo.example/processes'
+                    href: 'https://geodatacube.example/processes'
                     type: text/html
                     title: HTML version of the processes
-        4XX:
-          $ref: '#/components/responses/client_error_auth'
-        5XX:
-          $ref: '#/components/responses/server_error'
-  /udf_runtimes:
-    get:
-      summary: Supported UDF runtimes
-      operationId: list-udf-runtimes
-      description: >-
-        Lists the supported runtimes for user-defined functions (UDFs),
-        which includes either the programming languages including version
-        numbers and available libraries including version numbers or docker
-        containers.
-      tags:
-        - Capabilities
-      security:
-        - {}
-        - Bearer: []
-      responses:
-        '200':
-          description: Description of UDF runtime support
-          content:
-            application/json:
-              schema:
-                title: UDF Runtimes
-                type: object
-                description: |-
-                  Map of available runtime environments. Runtime environments
-                  can be either a programming language environment or Docker-based.
-                  
-                  Each runtime environment has a unique name, which is used as
-                  the property key. The name is used in processes to select the
-                  runtime environment for UDFs, so the names should be stable and
-                  meaningful.
-                  It is RECOMMENDED to use the following naming and casing:
-                  * For programming langauge environments use the names as provided
-                    in in the [Scriptol List of Programming Languages](https://www.scriptol.com/programming/list-programming-languages.php).
-                  * For docker images use the docker image identifier excluding the registry path.
-                additionalProperties:
-                  x-additionalPropertiesName: UDF Runtime name
-                  allOf:
-                    - $ref: '#/components/schemas/udf_runtime'
-              example:
-                PHP:
-                  title: PHP v7.x
-                  description: Just an example how to reference a docker image.
-                  experimental: true
-                  type: docker
-                  docker: openeo/udf-php7
-                  default: latest
-                  tags:
-                    - latest
-                    - 7.3.1
-                    - '7.3'
-                    - '7.2'
-                  links:
-                    - href: 'https://hub.docker.com/openeo/udf-php7/'
-                      rel: about
-                R:
-                  title: R v3.x for Statistical Computing
-                  description: R programming language with `Rcpp` and `rmarkdown` extensions installed.
-                  type: language
-                  default: 3.5.2
-                  versions:
-                    3.1.0:
-                      deprecated: true
-                      libraries:
-                        Rcpp:
-                          version: 1.0.10
-                          links:
-                            - href: >-
-                                https://cran.r-project.org/web/packages/Rcpp/index.html
-                              rel: about
-                        rmarkdown:
-                          version: 1.7.0
-                          links:
-                            - href: >-
-                                https://cran.r-project.org/web/packages/rmarkdown/index.html
-                              rel: about
-                    3.5.2:
-                      libraries:
-                        Rcpp:
-                          version: 1.2.0
-                          links:
-                            - href: >-
-                                https://cran.r-project.org/web/packages/Rcpp/index.html
-                              rel: about
-                        rmarkdown:
-                          version: 1.7.0
-                          links:
-                            - href: >-
-                                https://cran.r-project.org/web/packages/rmarkdown/index.html
-                              rel: about
-        4XX:
-          $ref: '#/components/responses/client_error_auth'
-        5XX:
-          $ref: '#/components/responses/server_error'
-  /credentials/oidc:
-    get:
-      summary: OpenID Connect authentication
-      operationId: authenticate-oidc
-      description: |-
-        Lists the supported [OpenID Connect](http://openid.net/connect/)
-        providers (OP). OpenID Connect Providers MUST support [OpenID Connect
-        Discovery](http://openid.net/specs/openid-connect-discovery-1_0.html).
-
-        It is highly RECOMMENDED to implement OpenID Connect for public services
-        in favor of Basic authentication.
-
-        openEO clients MUST use the **access token** as part of the Bearer token
-        for authorization in subsequent API calls (see also the information
-        about Bearer tokens in this document). Clients MUST NOT use the id token
-        or the authorization code. The access token provided by an OpenID Connect
-        Provider does not necessarily provide information about the issuer (i.e. the
-        OpenID Connect provider) and therefore a prefix MUST be added to the Bearer
-        Token sent in subsequent API calls to protected endpoints. The Bearer
-        Token sent to protected endpoints MUST consist of the authentication
-        method (here `oidc`), the provider ID and the access token itself. All
-        separated by a forward slash `/`. The provider ID corresponds to the
-        value specified for `id` for each provider in the response body of this
-        endpoint.  The header in subsequent API calls for a provider with `id`
-        `ms` would look as follows: `Authorization: Bearer oidc/ms/TOKEN`
-        (replace `TOKEN` with the actual access token received from the OpenID
-        Connect Provider).
-
-        Back-ends MAY request user information ([including Claims](https://openid.net/specs/openid-connect-core-1_0.html#Claims))
-        from the [OpenID Connect Userinfo endpoint](https://openid.net/specs/openid-connect-core-1_0.html#UserInfo)
-        using the access token (without the prefix described above). Therefore,
-        both openEO client and openEO back-end are relying parties (clients) to
-        the OpenID Connect Provider.
-      tags:
-        - Account Management
-      security:
-        - {}
-      responses:
-        '200':
-          description: Lists the the OpenID Connect Providers.
-          content:
-            application/json:
-              schema:
-                title: OpenID Connect Providers
-                type: object
-                required:
-                  - providers
-                properties:
-                  providers:
-                    type: array
-                    description: >-
-                      The first provider in this list is the default provider for authentication.
-                      Clients can either pre-select or directly use the default provider for authentication
-                      if the user doesn't specify a specific value.
-                    minItems: 1
-                    items:
-                      title: OpenID Connect Provider
-                      type: object
-                      required:
-                        - id
-                        - issuer
-                        - title
-                      properties:
-                        id:
-                          type: string
-                          description: >-
-                            A per-backend **unique** identifier for the OpenID Connect Provider to
-                            be as prefix for the Bearer token.
-                          pattern: '[\d\w]{1,20}'
-                        issuer:
-                          type: string
-                          format: uri
-                          description: >-
-                            The [issuer location](https://openid.net/specs/openid-connect-discovery-1_0.html#ProviderConfig)
-                            (also referred to as 'authority' in some client libraries) is the URL of the
-                            OpenID Connect provider, which conforms to a set of rules:
-
-                            1. After appending `/.well-known/openid-configuration` to the URL, a
-                            [HTTP/1.1 GET
-                            request](https://openid.net/specs/openid-connect-discovery-1_0.html#ProviderConfigurationRequest)
-                            to the concatenated URL MUST return a [OpenID Connect Discovery Configuration
-                            Response](https://openid.net/specs/openid-connect-discovery-1_0.html#ProviderConfigurationResponse).
-                            The response provides all information required to authenticate using
-                            OpenID Connect.
-
-                            2. The URL MUST NOT contain a terminating forward slash `/`.
-
-                          example: 'https://accounts.google.com'
-                        scopes:
-                          type: array
-                          description: >-
-                            A list of OpenID Connect scopes that the client MUST at least include when requesting authorization.
-                            Clients MAY add additional scopes such as the `offline_access` scope to retrieve a refresh token.
-
-                            If scopes are specified, the list MUST at least contain the `openid` scope.
-                          items:
-                            type: string
-                        title:
-                          type: string
-                          description: >-
-                            The name that is publicly shown in clients for this
-                            OpenID Connect provider.
-                        description:
-                          type: string
-                          format: commonmark
-                          description: |-
-                            A description that explains how the authentication procedure works.
-
-                            It should make clear how to register and get credentials. This should
-                            include instruction on setting up `client_id`, `client_secret` and `redirect_uri`.
-
-                            [CommonMark 0.29](http://commonmark.org/) syntax MAY be used for rich
-                            text representation.
-                        default_clients:
-                          title: Default OpenID Connect Clients
-                          type: array
-                          description: |-
-                            List of default OpenID Connect clients that can be used by an openEO client
-                            for OpenID Connect based authentication.
-
-                            A default OpenID Connect client is managed by the back-end implementer.
-                            It MUST be configured to be usable without a client secret,
-                            which limits its applicability to OpenID Connect grant types like
-                            "Authorization Code Grant with PKCE" and "Device Authorization Grant with PKCE"
-
-                            A default OpenID Connect client is provided without availability guarantees.
-                            The back-end implementer CAN revoke, reset or update it any time.
-                            As such, openEO clients SHOULD NOT store or cache default OpenID Connect client information
-                            for long term usage.
-                            A default OpenID Connect client is intended to simplify authentication for novice users.
-                            For production use cases, it is RECOMMENDED to set up a dedicated OpenID Connect client.
-                          uniqueItems: true
-                          items:
-                            title: Default OpenID Connect Client
-                            type: object
-                            required:
-                              - id
-                              - grant_types
-                            properties:
-                              id:
-                                type: string
-                                description: >-
-                                  The OpenID Connect Client ID to be used in the authentication procedure.
-                              grant_types:
-                                type: array
-                                description: |-
-                                  List of authorization grant types (flows) supported by the OpenID Connect client.
-                                  A grant type descriptor consist of a OAuth 2.0 grant type,
-                                  with an additional `+pkce` suffix when the grant type should be used with
-                                  the PKCE extension as defined in [RFC 7636](https://www.rfc-editor.org/rfc/rfc7636.html).
-
-                                  Allowed values:
-                                  - `implicit`: Implicit Grant as specified in [RFC 6749, sec. 1.3.2](https://www.rfc-editor.org/rfc/rfc6749.html#section-1.3.2)
-                                  - `authorization_code` / `authorization_code+pkce`: Authorization Code Grant as specified in [RFC 6749, sec. 1.3.1](https://www.rfc-editor.org/rfc/rfc6749.html#section-1.3.1), with or without PKCE extension.
-                                  - `urn:ietf:params:oauth:grant-type:device_code` / `urn:ietf:params:oauth:grant-type:device_code+pkce`: Device Authorization Grant (aka Device Code Flow) as specified in [RFC 8628](https://www.rfc-editor.org/rfc/rfc8628.html), with or without PKCE extension. Note that the combination of this grant with the PKCE extension is *not standardized* yet.
-                                  - `refresh_token`: Refresh Token as specified in [RFC 6749, sec. 1.5](https://www.rfc-editor.org/rfc/rfc6749.html#section-1.5)
-                                minItems: 1
-                                uniqueItems: true
-                                items:
-                                  type: string
-                                  enum:
-                                    - 'implicit'
-                                    - 'authorization_code'
-                                    - 'authorization_code+pkce'
-                                    - 'urn:ietf:params:oauth:grant-type:device_code'
-                                    - 'urn:ietf:params:oauth:grant-type:device_code+pkce'
-                                    - 'refresh_token'
-                              redirect_urls:
-                                type: array
-                                description: |-
-                                  List of redirect URLs that are whitelisted by the OpenID Connect client.
-                                  Redirect URLs MUST be provided when the OpenID Connect client supports
-                                  the Implicit Grant or the Authorization Code Grant (with or without PKCE extension).
-                                uniqueItems: true
-                                items:
-                                  type: string
-                                  format: uri
-                        links:
-                          type: array
-                          description: |-
-                            Links related to this provider, for example a
-                            help page or a page to register a new user account.
-
-                            For relation types see the lists of
-                            [common relation types in openEO](#section/API-Principles/Web-Linking).
-                          items:
-                            $ref: '#/components/schemas/link'
-              example:
-                providers:
-                  - id: egi
-                    issuer: 'https://aai.egi.eu/oidc'
-                    title: EGI (default)
-                    description: Login with your academic account.
-                    scopes:
-                      - openid
-                      - profile
-                      - email
-                    default_clients:
-                      - id: KStcUzD5AIUA
-                        grant_types:
-                          - implicit
-                          - authorization_code+pkce
-                          - urn:ietf:params:oauth:grant-type:device_code+pkce
-                          - refresh_token
-                        redirect_urls:
-                          - https://editor.openeo.org/
-                  - id: google
-                    issuer: 'https://accounts.google.com'
-                    title: Google
-                    description: Login with your Google Account.
-                    scopes:
-                      - openid
-                      - profile
-                      - email
-                      - earthengine
-                  - id: ms
-                    issuer: 'https://login.microsoftonline.com/example-tenant/v2.0'
-                    title: Microsoft
-                    description: Login with your Microsoft or Skype Account.
-                    scopes: []
         4XX:
           $ref: '#/components/responses/client_error_auth'
         5XX:
@@ -2136,74 +1715,6 @@ paths:
           $ref: '#/components/responses/client_error_auth'
         5XX:
           $ref: '#/components/responses/server_error'
-  /validation:
-    post:
-      summary: Validate a user-defined process (graph)
-      operationId: validate-custom-process
-      description: |-
-        Validates a user-defined process without executing it. A user-defined process is
-        considered valid unless the `errors` array in the response contains at
-        least one error.
-
-        Checks whether the process graph is schematically correct and the
-        processes are supported by the back-end. It MUST also check the
-        arguments against the schema, but checking whether the arguments are
-        adequate in the context of data is OPTIONAL. For example, a non-existing
-        band name may get rejected only by a few back-ends.
-        The validation MUST NOT throw an error for unresolvable process parameters.
-
-        Back-ends MUST validate the process graph. Validating the corresponding
-        metadata is OPTIONAL.
-
-        Errors that usually occur during processing MAY NOT get reported, e.g.
-        if a referenced file is accessible at the time of execution.
-
-        Back-ends can either report all errors at once or stop the validation
-        once they found the first error. 
-
-        Please note that a validation always returns with HTTP status code 200.
-        Error codes in the 4xx and 5xx ranges MUST be returned only when the
-        general validation request is invalid (e.g. server is busy or properties
-        in the request body are missing), but never if an error was found during
-        validation of the user-defined process (e.g. an unsupported process).
-      tags:
-        - Data Processing
-        - User-Defined Processes
-      security:
-        - {}
-        - Bearer: []
-      responses:
-        '200':
-          description: >-
-            Returns the validation result as a list of errors. An empty list
-            indicates a successful validation.
-          content:
-            application/json:
-              schema:
-                title: Validation Result
-                type: object
-                required:
-                  - errors
-                properties:
-                  errors:
-                    description: A list of validation errors.
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/error'
-        4XX:
-          $ref: '#/components/responses/client_error_auth'
-        5XX:
-          $ref: '#/components/responses/server_error'
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/process_graph_with_metadata'
-            examples:
-              evi_user_defined_process:
-                $ref: '#/components/examples/evi_user_defined_process'
-        description: Specifies the user-defined process to be validated.
   /result:
     post:
       summary: Process and download data synchronously
@@ -2218,10 +1729,6 @@ paths:
         computations. Back-ends MAY send the openEO error `ProcessGraphComplexity`
         immediately if the computation is expected to time out. Otherwise requests
         MAY time-out after a certain amount of time by sending openEO error `RequestTimeout`.
-        
-        A header named `OpenEO-Costs` MAY be sent with all responses, which MUST
-        include the costs for processing and downloading the data. Additionally, 
-        a link to a log file MAY be sent in the header.
       tags:
         - Data Processing
       security:
@@ -2246,17 +1753,13 @@ paths:
                    so that users can make sense of the files.
               schema:
                 type: string
-            OpenEO-Costs:
-              description: MAY include the costs for processing and downloading the data.
-              schema:
-                $ref: '#/components/schemas/money'
             Link:
               description: >-
                 The header MAY indicate a link to a log file generated by the request. If provided, the link MUST be serialized according to [RFC 8288](https://www.rfc-editor.org/rfc/rfc8288.html#section-3) and MUST use the relation type `monitor`. The link MUST follow the specifications for the links `GET /jobs/{job_id}/logs` and `GET /services/{service_id}/logs`, except that is MUST NOT accept any parameters (limit/offset). Therefore, the link MUST be accessible with HTTP GET, MUST be secured using a Bearer token and MUST follow the corresponding request body schema.
               schema:
                 type: string
                 pattern: ^<[^>]+>;\s?rel="monitor"
-                example: <https://openeo.example/api/v1/logs/258489231>; rel="monitor"
+                example: <https://geodatacube.example/api/v1/logs/258489231>; rel="monitor"
         4XX:
           $ref: '#/components/responses/client_error_auth'
         5XX:
@@ -2274,10 +1777,6 @@ paths:
               properties:
                 process:
                   $ref: '#/components/schemas/process_graph_with_metadata'
-                budget:
-                  $ref: '#/components/schemas/budget'
-                plan:
-                  $ref: '#/components/schemas/billing_plan_null_default'
                 log_level:
                   $ref: '#/components/schemas/min_log_level_default'
               additionalProperties: 
@@ -2700,7 +2199,7 @@ paths:
                   metadata endpoint in the property `url`.
                 format: uri
                 type: string
-                example: 'https://openeo.example/api/v1/services/123'
+                example: 'https://geodatacube.example/api/v1/services/123'
             OpenEO-Identifier:
               required: true
               schema:
@@ -2734,10 +2233,6 @@ paths:
                     - default: true
                 configuration:
                   $ref: '#/components/schemas/service_configuration'
-                plan:
-                  $ref: '#/components/schemas/billing_plan_null_default'
-                budget:
-                  $ref: '#/components/schemas/budget'
                 log_level:
                   $ref: '#/components/schemas/min_log_level_default'
               additionalProperties: 
@@ -2783,10 +2278,6 @@ paths:
                   $ref: '#/components/schemas/service_enabled'
                 configuration:
                   $ref: '#/components/schemas/service_configuration'
-                plan:
-                  $ref: '#/components/schemas/billing_plan_null'
-                budget:
-                  $ref: '#/components/schemas/budget_update'
                 log_level:
                   $ref: '#/components/schemas/min_log_level_update'
         description: The data to change for the specified secondary web service.
@@ -2936,7 +2427,7 @@ paths:
                   unique identifier (ID) of the created batch job.
                 format: uri
                 type: string
-                example: 'https://openeo.example/api/v1/jobs/123'
+                example: 'https://geodatacube.example/api/v1/jobs/123'
             OpenEO-Identifier:
               required: true
               schema:
@@ -2961,10 +2452,6 @@ paths:
                   $ref: '#/components/schemas/eo_description'
                 process:
                   $ref: '#/components/schemas/process_graph_with_metadata'
-                plan:
-                  $ref: '#/components/schemas/billing_plan_null_default'
-                budget:
-                  $ref: '#/components/schemas/budget'
                 log_level:
                   $ref: '#/components/schemas/min_log_level_default'
               additionalProperties: 
@@ -2983,8 +2470,7 @@ paths:
         The job status does not change.
 
         Jobs can only be modified when the job is not queued and not running.
-        Otherwise, requests to this endpoint MUST be rejected with openEO error
-        `JobLocked`.
+        Otherwise, requests to this endpoint MUST be rejected with an error.
       tags:
         - Data Processing
         - Batch Jobs
@@ -3011,10 +2497,6 @@ paths:
                   $ref: '#/components/schemas/eo_description'
                 process:
                   $ref: '#/components/schemas/process_graph_with_metadata'
-                plan:
-                  $ref: '#/components/schemas/billing_plan_null'
-                budget:
-                  $ref: '#/components/schemas/budget_update'
                 log_level:
                   $ref: '#/components/schemas/min_log_level_update'
         description: Specifies the job details to update.
@@ -3057,87 +2539,6 @@ paths:
       responses:
         '204':
           description: The job has been successfully deleted.
-        4XX:
-          $ref: '#/components/responses/client_error_auth'
-        5XX:
-          $ref: '#/components/responses/server_error'
-  '/jobs/{job_id}/estimate':
-    get:
-      summary: Get an estimate for a batch job
-      operationId: estimate-job
-      description: >-
-        Calculates an estimate for a batch job. Back-ends can decide to
-        either calculate the duration, the costs, the size or a combination of
-        them.
-
-        Back-end providers MAY specify an expiry time for the estimate.
-        Starting to process data afterwards MAY be charged at a higher cost.
-        Costs do often not include download costs. Whether download costs are included or not can be indicated explicitly with the
-        `downloads_included` flag.
-        
-        The estimate SHOULD be the upper limit of the costs, but back-end are
-        free to use the field according to their terms of service.
-        
-        For some batch jobs it is not (easily) possible to estimate the costs
-        reliably, e.g. if a UDF or ML model is part of the process.
-        In this case, the server SHOULD return a `EstimateComplexity` error
-        with HTTP status code 500.
-      tags:
-        - Data Processing
-        - Batch Jobs
-      security:
-        - Bearer: []
-      parameters:
-        - $ref: '#/components/parameters/job_id'
-      responses:
-        '200':
-          description: >-
-            The estimated costs with regard to money, processing time and
-            storage capacity. At least one of `costs`, `duration` or `size` MUST
-            be provided.
-          content:
-            application/json:
-              schema:
-                title: Batch Job Estimate
-                type: object
-                anyOf:
-                  - required:
-                    - "costs"
-                  - required:
-                    - "duration"
-                  - required:
-                    - "size"
-                properties:
-                  costs:
-                    $ref: '#/components/schemas/money'
-                  duration:
-                    type: string
-                    description: >-
-                      Estimated duration for the operation. Duration MUST be
-                      specified as a ISO 8601 duration.
-                    example: P1Y2M10DT2H30M
-                  size:
-                    type: integer
-                    description: >-
-                      Estimated required storage capacity, i.e. the size of the
-                      generated files. Size MUST be specified in bytes.
-                    example: 157286400
-                  downloads_included:
-                    type: integer
-                    nullable: true
-                    description: >-
-                      Specifies how many full downloads of the processed data
-                      are included in the estimate. Set to `null` for unlimited
-                      downloads, which is also the default value.
-                    example: 5
-                    default: null
-                  expires:
-                    type: string
-                    format: date-time
-                    description: >-
-                      Time until which the estimate is valid, formatted as a
-                      [RFC 3339](https://www.rfc-editor.org/rfc/rfc3339.html) date-time.
-                    example: '2020-11-01T00:00:00Z'
         4XX:
           $ref: '#/components/responses/client_error_auth'
         5XX:
@@ -3190,8 +2591,7 @@ paths:
         The response includes additional metadata. It is a valid
         [STAC Item](https://github.com/radiantearth/stac-spec/tree/v1.0.0/item-spec)
         (if it has spatial and temporal references included) or a valid
-        [STAC Collection](https://github.com/radiantearth/stac-spec/tree/v1.0.0/collection-spec)
-        (supported since openEO API version 1.1.0).
+        [STAC Collection](https://github.com/radiantearth/stac-spec/tree/v1.0.0/collection-spec).
         The assets to download are in both cases available in the property `assets`
         and have the same structure. All additional metadata is not strictly required
         to download the files, but are helpful for users to understand the data.
@@ -3201,12 +2601,6 @@ paths:
         STAC catalog structure a client has to go through. Option 2 is overall the better 
         architectural choice and allows a fine-grained description of the processed data,
         but it is not compliant with previous versions of the openEO API.
-        **To maintain backward compatibility, it is REQUIRED to still copy
-        all assets in the STAC catalog structure into the collection-level assets.**
-        This requirement is planned to be removed in openEO API version 2.0.0.
-        A client can enforce that the server returns a GeoJSON through content negotiation
-        with the media type `application/geo+json`, but the results may not contain very
-        meaningful metadata aside from the assets.
 
         Clients are RECOMMENDED to store this response and all potential sub-catalogs
         and items with the assets so that the downloaded data is then a self-contained
@@ -3223,13 +2617,13 @@ paths:
         SHOULD always return non-expired URLs. Signed URLs that were generated
         for a previous request and already expired SHOULD NOT be reused,
         but regenerated with new expiration time.
-        Signed URLs that expired MAY return the openEO error `ResultLinkExpired`.
+        Signed URLs that expired MAY return an error.
 
         It is **strongly recommended** to add a link with relation type `canonical`
         to the STAC Item or STAC Collection (see the `links` property for details).
 
         If processing has not finished yet and the `partial` parameter is not set to `true`
-        requests to this endpoint MUST be rejected with openEO error `JobNotFinished`.
+        requests to this endpoint MUST be rejected an error.
       tags:
         - Data Processing
         - Batch Jobs
@@ -3240,9 +2634,6 @@ paths:
           description: >-
             If set to `true`, the results endpoint returns incomplete results while
             still running.
-
-            Enabling this parameter requires to indicate the status of the batch job
-            in the STAC metadata by setting the `openeo:status`.
           in: query
           allowEmptyValue: true
           schema:
@@ -3253,18 +2644,6 @@ paths:
           description: >-
             Valid download links have been returned. The download links doesn't
             necessarily need to be located under the API base url.
-          headers:
-            OpenEO-Costs:
-              description: >-
-                Specifies the costs for fully downloading the data **once**,
-                i.e. this header MAY change in subsequent calls. It MUST be set
-                to `0` if the requester is the owner of the job and still has
-                free downloads included in his processing charges estimated by
-                `GET /jobs/{job_id}/estimate`.
-                If a requester other than the owner is requesting the data of a
-                shared job this header indicates the costs for the requester.
-              schema:
-                $ref: '#/components/schemas/money'
           content:
             application/json:
               schema:
@@ -3274,9 +2653,6 @@ paths:
                     type: object
                     required:
                       - assets
-                    properties:
-                      'openeo:status':
-                        $ref: '#/components/schemas/result_status'
                     allOf:
                       - $ref: '#/components/schemas/collection'
                     example:
@@ -3306,30 +2682,30 @@ paths:
                               - 90
                       assets:
                         preview.png:
-                          href: 'https://openeo.example/api/v1/download/583fba8b2ce583fba8b2ce/preview.png'
+                          href: 'https://geodatacube.example/api/v1/download/583fba8b2ce583fba8b2ce/preview.png'
                           type: image/png
                           title: Thumbnail
                           roles:
                             - thumbnail
                         process.json:
-                          href: 'https://openeo.example/api/v1/download/583fba8b2ce583fba8b2ce/process.json'
+                          href: 'https://geodatacube.example/api/v1/download/583fba8b2ce583fba8b2ce/process.json'
                           type: application/json
                           title: Original Process
                           roles:
                             - process
                             - reproduction
                         1.tif:
-                          href: 'https://openeo.example/api/v1/download/583fba8b2ce583fba8b2ce/1.tif'
+                          href: 'https://geodatacube.example/api/v1/download/583fba8b2ce583fba8b2ce/1.tif'
                           type: image/tiff; application=geotiff
                           roles:
                             - data
                         2.tif:
-                          href: 'https://openeo.example/api/v1/download/583fba8b2ce583fba8b2ce/2.tif'
+                          href: 'https://geodatacube.example/api/v1/download/583fba8b2ce583fba8b2ce/2.tif'
                           type: image/tiff; application=geotiff
                           roles:
                             - data
                         inspire.xml:
-                          href: 'https://openeo.example/api/v1/download/583fba8b2ce583fba8b2ce/inspire.xml'
+                          href: 'https://geodatacube.example/api/v1/download/583fba8b2ce583fba8b2ce/inspire.xml'
                           type: application/xml
                           title: INSPIRE metadata
                           description: INSPIRE compliant XML metadata
@@ -3338,13 +2714,13 @@ paths:
                       links:
                         - rel: canonical
                           type: application/json
-                          href: https://openeo.example/api/v1/download/583fba8b2ce583fba8b2ce/collection.json
+                          href: https://geodatacube.example/api/v1/download/583fba8b2ce583fba8b2ce/collection.json
                         - rel: item
                           type: application/geo+json
-                          href: https://openeo.example/api/v1/download/583fba8b2ce583fba8b2ce/item_1.json
+                          href: https://geodatacube.example/api/v1/download/583fba8b2ce583fba8b2ce/item_1.json
                         - rel: item
                           type: application/geo+json
-                          href: https://openeo.example/api/v1/download/583fba8b2ce583fba8b2ce/item_2.json
+                          href: https://geodatacube.example/api/v1/download/583fba8b2ce583fba8b2ce/item_2.json
             application/geo+json:
               schema:
                 $ref: '#/components/schemas/batch_job_result'
@@ -3388,13 +2764,6 @@ paths:
         This endpoint has no effect if the job status is already `queued` or
         `running`. In particular, it doesn't restart a running job. To restart
         a queued or running job, processing MUST have been canceled before.
-
-        Back-ends SHOULD reject queueing jobs with openEO error `PaymentRequired`,
-        if the back-end is able to detect that the budget is too low to fully
-        process the request. Alternatively, back-ends MAY provide partial results
-        once reaching the budget. If none of the alternatives is feasible, the
-        results are discarded. Thus, client SHOULD warn users that reaching the
-        budget may lead to partial or no results at all.
       tags:
         - Data Processing
         - Batch Jobs
@@ -3606,10 +2975,6 @@ paths:
         and the user profile, e.g. where payments are handled or the user profile
         could be edited.
 
-        For back-ends that involve accounting, this service MAY also return the
-        currently available money or credits in the currency the back-end is
-        working with.
-
         This endpoint MAY be extended to fulfil the specification of the [OpenID
         Connect UserInfo
         Endpoint](http://openid.net/specs/openid-connect-core-1_0.html#UserInfo).
@@ -3625,9 +2990,7 @@ paths:
               schema:
                 title: User Data
                 description: >-
-                  Holds user information. If no budget or storage limit applies
-                  to the user account the corresponding properties MUST be set
-                  to null.
+                  Holds user information.
                 type: object
                 required:
                   - user_id
@@ -3645,10 +3008,6 @@ paths:
                     description: >-
                       The user name, a human-friendly displayable name. Could be 
                       the user's real name or a nickname.
-                  default_plan:
-                    type: string
-                    description: Name of the single plan the user is currently subscribed to if any.
-                    example: free
                   storage:
                     title: User Storage
                     description: Information about the storage space available to the user.
@@ -3672,13 +3031,6 @@ paths:
                           Maximum storage space (disk quota) in bytes available
                           to the user.
                         example: 1073741824
-                  budget:
-                    type: number
-                    nullable: true
-                    description: |-
-                      The remaining budget a user has available.
-                      The value MUST be specified in the currency of the back-end.
-                      The value SHOULD be set to `null` if no explicit limit applies.
                   links:
                     description: |-
                       Links related to the user profile, e.g. where payments
@@ -3686,37 +3038,35 @@ paths:
 
                       It is RECOMMENDED to provide links with the following `rel` (relation) types:
 
-                      1. `payment`: A page where users can recharge their user account with money or credits.
+                      1. `edit-form`: Points to a page where the user can edit his user profile.
 
-                      2. `edit-form`: Points to a page where the user can edit his user profile.
-
-                      3. `alternate`: Any other representation of these (and potentially additional)
+                      2. `alternate`: Any other representation of these (and potentially additional)
                       user information, e.g. the (public) user profile page.
                       It is RECOMMENDED to add descriptive titles for a better user experience.
 
-                      4. `related`: Any other user-specific links to be shown in clients,
+                      3. `related`: Any other user-specific links to be shown in clients,
                       e.g. to user-specific settings, invoices, etc. It is RECOMMENDED to 
                       add descriptive titles for a better user experience.
 
                       For additional relation types see also the lists of
-                      [common relation types in openEO](#section/API-Principles/Web-Linking).
+                      [common relation types](#section/API-Principles/Web-Linking).
                     type: array
                     items:
                       $ref: '#/components/schemas/link'
                     example:
-                      - href: 'https://openeo.example/john_doe/payment/'
+                      - href: 'https://geodatacube.example/john_doe/payment/'
                         rel: payment
-                      - href: 'https://openeo.example/john_doe/edit/'
+                      - href: 'https://geodatacube.example/john_doe/edit/'
                         rel: edit-form
-                      - href: 'https://openeo.example/john_doe/'
+                      - href: 'https://geodatacube.example/john_doe/'
                         rel: alternate
                         type: text/html
                         title: User profile
-                      - href: 'https://openeo.example/john_doe.vcf'
+                      - href: 'https://geodatacube.example/john_doe.vcf'
                         rel: alternate
                         type: text/vcard
                         title: vCard of John Doe
-                      - href: 'https://openeo.example/john_doe/invoices'
+                      - href: 'https://geodatacube.example/john_doe/invoices'
                         rel: related
                         type: text/html
                         title: Invoices
@@ -3731,156 +3081,13 @@ components:
         Lists all conformance classes specified in various standards that the
         implementation conforms to. Conformance classes are commonly used in
         all OGC APIs and the STAC API specification.
-
-        The general openEO conformance class is `https://api.openeo.org/1.2.0`.
-        See the individual openEO API extensions for their conformance classes.
-
-        This property is REQUIRED for STAC API versions 1.0.0-beta.1 and later.
       type: array
       items:
         type: string
         format: uri
       example:
-        - https://api.openeo.org/1.2.0
-        - https://api.openeo.org/extensions/commercial-data/0.1.0
-        - https://api.openeo.org/extensions/federation/0.1.0
+        - https://api.openeo.org/1.0.0
         - https://api.stacspec.org/v1.0.0/collections
-    udf_runtime:
-      type: object
-      required:
-        - type
-        - default
-      properties:
-        title:
-          $ref: '#/components/schemas/object_title'
-        description:
-          $ref: '#/components/schemas/description'
-        type:
-          type: string
-          description: |-
-            The type of the UDF runtime.
-
-            Predefined types are:
-            * `language` for Programming Languages and
-            * `docker` for Docker Containers.
-            
-            The types can potentially be extended by back-ends.
-        default:
-          type: string
-        deprecated:
-          $ref: '#/components/schemas/deprecated'
-        experimental:
-          $ref: '#/components/schemas/experimental'
-        links:
-          type: array
-          description: |-
-            Links related to this runtime, e.g. external documentation.
-
-            It is highly RECOMMENDED to provide at least links with
-            the following `rel` (relation) types:
-
-            1. `about`: A resource that further explains the runtime,
-            e.g. a user guide or the documentation. It is RECOMMENDED to 
-            add descriptive titles for a better user experience.
-
-            For additional relation types see also the lists of
-            [common relation types in openEO](#section/API-Principles/Web-Linking).
-          items:
-            $ref: '#/components/schemas/link'
-      discriminator:
-        propertyName: type
-        mapping:
-          language: '#/components/schemas/udf_programming_language'
-          docker: '#/components/schemas/udf_docker'
-    udf_programming_language:
-      allOf:
-        - $ref: '#/components/schemas/udf_runtime'
-        - title: Programming language
-          required:
-            - versions
-          properties:
-            default:
-              type: string
-              description: The default version. MUST be one of the keys in the `versions` object.
-            versions:
-              title: Programming language versions
-              description: Versions available for the programming language.
-              type: object
-              additionalProperties:
-                x-additionalPropertiesName: Programming Language Version
-                title: Programming language version
-                type: object
-                required:
-                  - libraries
-                properties:
-                  deprecated:
-                    $ref: '#/components/schemas/deprecated'
-                  experimental:
-                    $ref: '#/components/schemas/experimental'
-                  libraries:
-                    description: >-
-                      Map of installed libraries, modules, packages
-                      or extensions for the programming language.
-                      The names of them are used as the property keys.
-                    additionalProperties:
-                      x-additionalPropertiesName: Library Name
-                      title: Programming language library
-                      type: object
-                      required:
-                        - version
-                      properties:
-                        version:
-                          type: string
-                          description: Version number of the library.
-                        deprecated:
-                          $ref: '#/components/schemas/deprecated'
-                        experimental:
-                          $ref: '#/components/schemas/experimental'
-                        links:
-                          type: array
-                          description: |-
-                            Additional links related to this library,
-                            e.g. external documentation for this library.
-
-                            It is highly RECOMMENDED to provide links with
-                            the following `rel` (relation) types:
-
-                            1. `about`: A resource that further explains the library,
-                            e.g. a user guide or the documentation. It is RECOMMENDED to 
-                            add descriptive titles for a better user experience.
-
-                            2. `latest-version`: If a library has been marked as deprecated,
-                            a link SHOULD point to either a new library replacing the deprecated
-                            library or a latest version of the library available at the back-end.
-
-                            For additional relation types see also the lists of
-                            [common relation types in openEO](#section/API-Principles/Web-Linking).
-                          items:
-                            $ref: '#/components/schemas/link'
-    udf_docker:
-      allOf:
-        - $ref: '#/components/schemas/udf_runtime'
-        - title: Docker container
-          required:
-            - docker
-            - tags
-          properties:
-            docker:
-              type: string
-              description: >-
-                Identifier of a Docker image on Docker Hub or a private repository,
-                which can run openEO UDFs.
-                This is what is used in the `docker pull` command excluding the tag,
-                e.g. `php`, `mcr.microsoft.com/dotnet/runtime` or `myregistry.local:5000/testing/test-image`.
-            default:
-              type: string
-              description: The default tag. MUST be one of the values in the `tags` array.
-            tags:
-              type: array
-              description: The docker tags that are supported.
-              minItems: 1
-              items:
-                type: string
     result_status:
       type: string
       enum:
@@ -4034,7 +3241,7 @@ components:
           example:
             - rel: canonical
               type: application/geo+json
-              href: https://openeo.example/api/v1/download/583fba8b2ce583fba8b2ce/item.json
+              href: https://geodatacube.example/api/v1/download/583fba8b2ce583fba8b2ce/item.json
     file_format:
       x-additionalPropertiesName: File Format Name
       title: File Format
@@ -4138,7 +3345,7 @@ components:
           type: string
           description: The value MUST be a valid URL.
           format: uri
-          example: 'https://openeo.example'
+          example: 'https://geodatacube.example'
         type:
           type: string
           description: >-
@@ -4194,89 +3401,12 @@ components:
             * `metadata`: Additional metadata available for the computed data.
           example:
             - data
-    money:
-      description: >-
-        An amount of money or credits. The value MUST be specified in the
-        currency the back-end is working with. The currency can be retrieved by
-        calling `GET /`. If no currency is set, this field MUST be `null`.
-      type: number
-      minimum: 0
-      example: 12.98
-      nullable: true
-      default: null
-    budget:
-      type: number
-      minimum: 0
-      nullable: true
-      description: |-
-        Maximum amount of costs the request is allowed to produce.
-        The value MUST be specified in the currency of the back-end.
-        No limits apply, if the value is `null` or the back-end has no currency
-        set in `GET /`.
-      example: 100
-      default: null
-    budget_update:
-      type: number
-      minimum: 0
-      nullable: true
-      description: |-
-        Maximum amount of costs the request is allowed to produce.
-        The value MUST be specified in the currency of the back-end.
-        No limits apply, if the value is `null`.
-      example: 100
-    billing_plan:
-      type: string
-      description: |-
-        The billing plan to process and charge the job or service with.
-
-        Billing plans MUST be handled in a *case insensitive* manner.
-        
-        The plans can be retrieved from `GET /`, but the value returned here may
-        not be in the list of plans any longer.
-      example: free
-    billing_plan_null:
-      type: string
-      description: |-
-        The billing plan to process and charge the job or service with.
-
-        Billing plans MUST be accepted in a *case insensitive* manner.
-        Back-ends MUST resolve the billing plan in the following way if billing is supported:
-
-        * If a value is given and it is not `null`: Persist the `plan` that has been provided in the request.
-        * Otherwise, don't change the billing plan.
-
-        Billing plans not on the list of available plans MUST be rejected with
-        openEO error `BillingPlanInvalid`.
-      example: free
-      nullable: true
-    billing_plan_null_default:
-      type: string
-      description: |-
-        The billing plan to process and charge the job or service with.
-
-        Billing plans MUST be accepted in a *case insensitive* manner.
-        Back-ends MUST resolve the billing plan in the following way:
-
-        * If a non-`null` value is given: Persist the `plan` that has been provided in the request.
-        * Otherwise:
-          1. Persist the `default_plan` exposed through `GET /me`, if available.
-          2. Persist the `default_plan` exposed through `GET /`, if available.
-          3. If a single plan is exposed by the back-end, persist it.
-          4. Otherwise, the back-end MUST throw a `BillingPlanMissing` error.
-
-        The resolved plan MUST be persisted permanently, regardless of any 
-        changes to the exposed billing plans in `GET /` in the future.
-
-        Billing plans not on the list of available plans MUST be rejected with
-        openEO error `BillingPlanInvalid`.
-      example: free
-      nullable: true
-      default: null
     collection:
       title: Collection
       type: object
       required:
         - stac_version
+        - type
         - id
         - description
         - license
@@ -4291,8 +3421,6 @@ components:
           type: string
           enum:
             - Collection
-          description: >-
-            For STAC versions >= 1.0.0-rc.1 this field is required.
         id:
           $ref: '#/components/schemas/collection_id'
         title:
@@ -4526,8 +3654,8 @@ components:
       description: >-
         The [version of the STAC specification](https://github.com/radiantearth/stac-spec/releases),
         which MAY not be equal to the [STAC API version](#tag/EO-Data-Discovery/STAC).
-        Supports versions 0.9.x and 1.x.x.
-      pattern: '^(0\.9.\d+|1\.\d+.\d+)'
+        Supports versions 1.x.x.
+      pattern: '^1\.\d+.\d+'
       example: 1.0.0
     stac_extensions:
       type: array
@@ -4541,7 +3669,7 @@ components:
           - title: Reference to a JSON Schema
             type: string
             format: uri
-            example: 'https://openeo.example/stac/custom-extemsion/v1.0.0/schema.json'
+            example: 'https://geodatacube.example/stac/custom-extemsion/v1.0.0/schema.json'
           - title: Reference to a core extension (STAC < 1.0.0-rc.1 only)
             type: string
             example: datacube
@@ -4631,32 +3759,32 @@ components:
         $ref: '#/components/schemas/asset'
       example:
         preview.png:
-          href: 'https://openeo.example/api/v1/download/583fba8b2ce583fba8b2ce/preview.png'
+          href: 'https://geodatacube.example/api/v1/download/583fba8b2ce583fba8b2ce/preview.png'
           type: image/png
           title: Thumbnail
           roles:
             - thumbnail
         process.json:
-          href: 'https://openeo.example/api/v1/download/583fba8b2ce583fba8b2ce/process.json'
+          href: 'https://geodatacube.example/api/v1/download/583fba8b2ce583fba8b2ce/process.json'
           type: application/json
           title: Original Process
           roles:
             - process
             - reproduction
         1.tif:
-          href: 'https://openeo.example/api/v1/download/583fba8b2ce583fba8b2ce/1.tif'
+          href: 'https://geodatacube.example/api/v1/download/583fba8b2ce583fba8b2ce/1.tif'
           type: image/tiff; application=geotiff
           title: Band 1
           roles:
             - data
         2.tif:
-          href: 'https://openeo.example/api/v1/download/583fba8b2ce583fba8b2ce/2.tif'
+          href: 'https://geodatacube.example/api/v1/download/583fba8b2ce583fba8b2ce/2.tif'
           type: image/tiff; application=geotiff
           title: Band 2
           roles:
             - data
         inspire.xml:
-          href: 'https://openeo.example/api/v1/download/583fba8b2ce583fba8b2ce/inspire.xml'
+          href: 'https://geodatacube.example/api/v1/download/583fba8b2ce583fba8b2ce/inspire.xml'
           type: application/xml
           title: INSPIRE metadata
           description: INSPIRE compliant XML metadata
@@ -5391,10 +4519,7 @@ components:
         are referred to and explained in process or parameter descriptions.
 
         The keys define the error code and MUST match the following pattern:
-        `^\w+$`
-
-        This schema follows the schema of the general openEO error list (see
-        errors.json).
+        `^\w+$`.
       additionalProperties:
         x-additionalPropertiesName: Error Code
         title: Process Exception
@@ -5564,12 +4689,6 @@ components:
           $ref: '#/components/schemas/created'
         updated:
           $ref: '#/components/schemas/updated'
-        plan:
-          $ref: '#/components/schemas/billing_plan'
-        costs:
-          $ref: '#/components/schemas/money'
-        budget:
-          $ref: '#/components/schemas/budget'
         usage:
           description: |-
             Metrics about the resource usage of the batch job.
@@ -5610,11 +4729,11 @@ components:
             - rel: result
               type: application/json
               title: Batch Job Results
-              href: https://openeo.example/api/v1/jobs/123/logs
+              href: https://geodatacube.example/api/v1/jobs/123/logs
             - rel: result
               type: application/json
               title: Batch Job Logs
-              href: https://openeo.example/api/v1/jobs/123/logs
+              href: https://geodatacube.example/api/v1/jobs/123/logs
     job_id:
       type: string
       description: >-
@@ -5706,7 +4825,7 @@ components:
           description: >-
             URL at which the secondary web service is accessible. Doesn't
             necessarily need to be located within the API.
-          example: 'https://openeo.example/wms/wms-a3cca9'
+          example: 'https://geodatacube.example/wms/wms-a3cca9'
         type:
           $ref: '#/components/schemas/service_type'
         enabled:
@@ -5728,12 +4847,6 @@ components:
               - evi
         created:
           $ref: '#/components/schemas/created'
-        plan:
-          $ref: '#/components/schemas/billing_plan'
-        costs:
-          $ref: '#/components/schemas/money'
-        budget:
-          $ref: '#/components/schemas/budget'
         usage:
           description: |-
             Metrics about the resource usage of the secondary web service.
@@ -5822,7 +4935,6 @@ components:
         
         See also:
         * [Error Handling](#section/API-Principles/Error-Handling) in the API in general.
-        * [Common Error Codes](errors.json)
       type: object
       required:
         - code
@@ -5863,7 +4975,7 @@ components:
       items:
         $ref: '#/components/schemas/link'
       example:
-        - href: 'https://openeo.example/docs/errors/SampleError'
+        - href: 'https://geodatacube.example/docs/errors/SampleError'
           rel: about
     log_level:
       description: |-
@@ -6355,7 +5467,7 @@ components:
 
             It is NOT RECOMMENDED to add stacktraces to the `message`.
           example: >-
-            Can't load the UDF file from the URL `https://openeo.example/invalid/file.txt`.
+            Can't load the UDF file from the URL `https://geodatacube.example/invalid/file.txt`.
             Server responded with error 404.
         time:
           type: string
@@ -6519,7 +5631,6 @@ components:
 
         See also:
         * [Error Handling](#section/API-Principles/Error-Handling) in the API in general.
-        * [Common Error Codes](errors.json)
       content:
         application/json:
           schema:
@@ -6539,7 +5650,6 @@ components:
 
         See also:
         * [Error Handling](#section/API-Principles/Error-Handling) in the API in general.
-        * [Common Error Codes](errors.json)
       content:
         application/json:
           schema:
@@ -6555,7 +5665,6 @@ components:
 
         See also:
         * [Error Handling](#section/API-Principles/Error-Handling) in the API in general.
-        * [Common Error Codes](errors.json)
       content:
         application/json:
           schema:

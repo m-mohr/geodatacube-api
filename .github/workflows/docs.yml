@@ -22,7 +22,7 @@ jobs:
       - name: clone gh-pages and clean-up
         if: ${{ env.GITHUB_REF_SLUG == 'master' }}
         run: |
-          git clone --branch gh-pages https://github.com/Open-EO/openeo-api.git gh-pages
+          git clone --branch gh-pages https://github.com/m-mohr/geodatacube-api.git gh-pages
           find gh-pages -maxdepth 1 -type f -delete
           rm -rf gh-pages/assets/
       - name: create empty gh-pages folder
@@ -30,7 +30,6 @@ jobs:
         run: mkdir gh-pages
       - run: |
           cp redoc.html gh-pages/index.html
-          cp errors.json gh-pages/errors.json
           cp -rv assets/. gh-pages/assets/
       - name: deploy to root (master)
         uses: peaceiris/actions-gh-pages@v3

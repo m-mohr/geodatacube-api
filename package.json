@@ -1,16 +1,16 @@
 {
-  "name": "@openeo/api",
+  "name": "geodatacube-api",
   "version": "1.2.0",
-  "author": "openEO Consortium",
+  "author": "OGC Testbed 19",
   "license": "Apache-2.0",
-  "description": "The openEO API specification.",
+  "description": "The geodatacube API specification.",
   "homepage": "https://openeo.org",
   "bugs": {
-    "url": "https://github.com/Open-EO/openeo-api/issues"
+    "url": "https://github.com/m-mohr/geodatacube-api/issues"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Open-EO/openeo-api.git"
+    "url": "git+https://github.com/m-mohr/geodatacube-api.git"
   },
   "devDependencies": {
     "@stoplight/spectral-cli": "^6.6.0",
