@@ -537,7 +537,7 @@ tags:
     description: Organizes and manages data processing on the back-end, either as synchronous on-demand computation or batch jobs.
   - name: Batch Jobs
     description: Management of batch processing tasks (jobs) and their results.
-  - name: Secondary Services
+  - name: Secondary Services (OGC APIs)
     description: On-demand access to data using other web service protocols (e.g., OGC API - Tiles / Maps).
   - name: OGC API - Features
     description: Data access through OGC API - Features - Part 1 (v1.0.0) and STAC API (v1.0.0)
@@ -2197,7 +2197,7 @@ paths:
         Service names MUST be accepted in a *case insensitive* manner throughout the API.
       tags:
         - Capabilities
-        - Secondary Services
+        - Secondary Services (OGC APIs)
       security:
         - {}
         - Bearer: []
@@ -2338,7 +2338,7 @@ paths:
         To get the full metadata for a secondary web service clients MUST
         request `GET /services/{service_id}`.
       tags:
-        - Secondary Services
+        - Secondary Services (OGC APIs)
       security:
         - Bearer: []
       parameters:
@@ -2386,7 +2386,7 @@ paths:
         paid by the owner, but this depends on the service type and whether it
         supports charging fees or not.
       tags:
-        - Secondary Services
+        - Secondary Services (OGC APIs)
       security:
         - Bearer: []
       responses:
@@ -2458,7 +2458,7 @@ paths:
 
         User have to create a new service to change the service type.
       tags:
-        - Secondary Services
+        - Secondary Services (OGC APIs)
       security:
         - Bearer: []
       responses:
@@ -2494,7 +2494,7 @@ paths:
       operationId: describe-service
       description: Lists all information about a secondary web service.
       tags:
-        - Secondary Services
+        - Secondary Services (OGC APIs)
       security:
         - Bearer: []
       responses:
@@ -2523,7 +2523,7 @@ paths:
         this is not possible any more. This service won't generate additional
         costs.
       tags:
-        - Secondary Services
+        - Secondary Services (OGC APIs)
       security:
         - Bearer: []
       responses:
@@ -2551,7 +2551,7 @@ paths:
         While pagination itself is OPTIONAL, the `offset` parameter is REQUIRED
         to be implemented by back-ends.
       tags:
-        - Secondary Services
+        - Secondary Services (OGC APIs)
       security:
         - Bearer: []
       parameters:
