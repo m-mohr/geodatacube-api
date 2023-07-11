@@ -1672,73 +1672,6 @@ paths:
           $ref: '#/components/responses/client_error_auth'
         5XX:
           $ref: '#/components/responses/server_error'
-  "/collections/{collection_id}/coverage/tiles":
-    get:
-      tags:
-      - EO Data Discovery / Access
-      - OGC API - Coverages
-      summary: Retrieve available coverage tilesets
-      description: Retrieve the list of available coverage tilesets for the specified collection.
-      operationId: list-coverage-tiles
-      parameters:
-      - "$ref": "#/components/parameters/collection_id"
-      - "$ref": "#/components/parameters/f-metadata"
-      responses:
-        '200':
-          "$ref": "#/components/responses/TileSetsList"
-        4XX:
-          $ref: '#/components/responses/client_error_auth'
-        5XX:
-          $ref: '#/components/responses/server_error'
-  "/collections/{collection_id}/coverage/tiles/{tileMatrixSetId}":
-    get:
-      tags:
-      - EO Data Discovery / Access
-      - OGC API - Coverages
-      summary: Retrieve the coverage tileset metadata
-      description: >-
-        Retrieve the coverage tileset metadata for the specified collection
-        and tiling scheme (tile matrix set)
-      operationId: describe-coverage-tilematrixset
-      parameters:
-      - "$ref": "#/components/parameters/collection_id"
-      - "$ref": "#/components/parameters/tileMatrixSetId"
-      - "$ref": "#/components/parameters/f-metadata"
-      responses:
-        '200':
-          "$ref": "#/components/responses/TileSet"
-        4XX:
-          $ref: '#/components/responses/client_error_auth'
-        5XX:
-          $ref: '#/components/responses/server_error'
-  "/collections/{collection_id}/coverage/tiles/{tileMatrixSetId}/{tileMatrix}/{tileRow}/{tileCol}":
-    get:
-      tags:
-      - EO Data Discovery / Access
-      - OGC API - Coverages
-      summary: Retrieve coverage tiles
-      description: Retrieve coverage tiles.
-      operationId: show-coverage-tile
-      parameters:
-      - "$ref": "#/components/parameters/tileMatrix"
-      - "$ref": "#/components/parameters/tileRow"
-      - "$ref": "#/components/parameters/tileCol"
-      - "$ref": "#/components/parameters/datetime"
-      - "$ref": "#/components/parameters/collection_id"
-      - "$ref": "#/components/parameters/subset"
-      - "$ref": "#/components/parameters/crs"
-      - "$ref": "#/components/parameters/subset-crs"
-      - "$ref": "#/components/parameters/tileMatrixSetId"
-      - "$ref": "#/components/parameters/f-coverageTile"
-      responses:
-        '200':
-          "$ref": "#/components/responses/CoverageTile"
-        '204':
-          "$ref": "#/components/responses/EmptyTile"
-        4XX:
-          $ref: '#/components/responses/client_error_auth'
-        5XX:
-          $ref: '#/components/responses/server_error'
   /processes:
     get:
       summary: Supported predefined processes
@@ -6844,48 +6777,6 @@ components:
         unit:
           type: string
   responses:
-    TileSetsList:
-      description: List of available tilesets.
-      content:
-        application/json:
-          schema:
-            type: object
-            required:
-            - tilesets
-            properties:
-              links:
-                type: array
-                items:
-                  "$ref": "#/components/schemas/link"
-              tilesets:
-                type: array
-                items:
-                  "$ref": "#/components/schemas/tileSet-item"
-        text/html:
-          schema:
-            type: string
-    TileSet:
-      description: Description of the tileset
-      content:
-        application/json:
-          schema:
-            "$ref": "#/components/schemas/tileSet"
-        text/html:
-          schema:
-            type: string
-    CoverageTile:
-      description: A coverage tile returned as a response.
-      content:
-        application/netcdf:
-          schema:
-            type: string
-            format: binary
-        image/tiff; application=geotiff:
-          schema:
-            type: string
-            format: binary
-    EmptyTile:
-      description: No data available for this tile.
     logs:
       description: Lists the requested log entries.
       content:
@@ -7161,60 +7052,6 @@ components:
         - html
         type: string
       style: form
-    tileMatrix:
-      name: tileMatrix
-      in: path
-      description: |-
-        Identifier selecting one of the scales defined in the TileMatrixSet and representing the scaleDenominator the tile. For example,
-        Ireland is fully within the Tile at WebMercatorQuad tileMatrix=5, tileRow=10 and tileCol=15.
-      required: true
-      schema:
-        type: string
-      example: '5'
-    tileRow:
-      name: tileRow
-      in: path
-      description: Row index of the tile on the selected TileMatrix. It cannot exceed
-        the MatrixWidth-1 for the selected TileMatrix. For example, Ireland is fully
-        within the Tile at WebMercatorQuad tileMatrix=5, tileRow=10 and tileCol=15.
-      required: true
-      schema:
-        minimum: 0
-        type: integer
-      example: 10
-    tileCol:
-      name: tileCol
-      in: path
-      description: Column index of the tile on the selected TileMatrix. It cannot
-        exceed the MatrixHeight-1 for the selected TileMatrix. For example, Ireland
-        is fully within the Tile at WebMercatorQuad tileMatrix=5, tileRow=10 and tileCol=15.
-      required: true
-      schema:
-        minimum: 0
-        type: integer
-      example: 15
-    tileMatrixSetId:
-      name: tileMatrixSetId
-      in: path
-      description: Identifier for a supported TileMatrixSet
-      required: true
-      allowEmptyValue: false
-      schema:
-        "$ref": "#/components/schemas/tileMatrixSets"
-    f-coverageTile:
-      name: f
-      in: query
-      description: The format of the coverage tile response (e.g. tiff). Accepted
-        values are 'tiff' (GeoTIFF), 'netcdf', or 'png'.
-      required: false
-      schema:
-        type: string
-        enum:
-        - png
-        - geotiff
-        - netcdf
-      style: form
-      explode: false
     pagination_limit:
       name: limit
       description: |-
