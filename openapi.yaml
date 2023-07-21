@@ -143,7 +143,7 @@ info:
 
     The API offers one forms of authentication by default:
     * Basic at `GET /credentials/basic`
-    * OpenID connect could be adopted from the openEO API
+    * OpenID Connect at `GET /credentials/oidc`
       
     After authentication with any of the methods listed above, the tokens obtained during the authentication workflows can be sent to protected endpoints in subsequent requests.
     
@@ -233,243 +233,6 @@ info:
     Access-Control-Expose-Headers: Location, GDC-Identifier, Link
     Content-Type: application/json
     ```
-
-    # Processes
-
-    A **process** is an operation that performs a specific task on a set of parameters and returns a result. An example is computing a statistical operation, such as mean or median, on selected EO data. A process is similar to a function or method in programming languages. In this API, processes are used to build a chain of processes ([process graph](#section/Processes/Process-Graphs)), which can be applied to EO data to derive your own findings from the data.
-
-    A **predefined process** is a process provided by the *back-end*. There is a set of predefined processes by openEO to improve interoperability between back-ends.
-    Back-ends SHOULD follow these specifications whenever possible. Not all processes need to be implemented by all back-ends. See the **[process reference](https://processes.openeo.org)** for predefined processes.
-
-    A **user-defined process** is a process defined by the *user*. It can directly be part of another process graph or be stored as custom process on a back-end. Internally, it is a *process graph* with a variety of additional metadata.
-
-    A **process graph** chains specific process calls from the set of predefined and user-defined processes together. A process graph itself can be stored as a (user-defined) process again. Similarly to scripts in the context of programming, process graphs organize and automate the execution of one or more processes that could alternatively be executed individually. In a process graph, processes need to be specific, i.e. concrete values or "placeholders" for input parameters need to be specified. These values can be scalars, arrays, objects, references to parameters or previous computations or other process graphs.
-
-    ## Defining Processes
-
-    Back-ends and users MAY define new proprietary processes for their domain. 
-    
-    **Back-end providers** MUST follow the schema for predefined processes as in [`GET /processes`](#operation/list-processes) to define new processes. This includes:
-
-    * Choosing a intuitive process id, consisting of only letters (a-z), numbers and underscores. It MUST be unique across the predefined processes.
-    * Defining the parameters and their exact (JSON) schemes.
-    * Specifying the return value of a process also with a (JSON) schema.
-    * Providing examples or compliance tests.
-    * Trying to make the process universally usable so that other back-end providers or openEO can adopt it.
-    
-    **Users** MUST follow the schema for user-defined processes as in [`GET /process_graphs/{process_graph_id}`](#operation/describe-custom-process) to define new processes. This includes:
-
-    * Choosing a intuitive name as process id, consisting of only letters (a-z), numbers and underscores. It MUST be unique per user across the user-defined processes.
-    * Defining the algorithm as a process graph.
-    * Optionally, specifying the additional metadata for processes.
-
-    ### Schemas
-
-    Each process parameter and the return values of a process define a schema that the value MUST comply to. The schemas are based on [JSON Schema draft-07](http://json-schema.org/).
-
-    Multiple custom keywords have been defined:
-    * `subtype` for more fine-grained data-types than JSON Schema supports.
-    * `dimensions` to further define the dimension types required if the `subtype` is `datacube`.
-    * `parameters` to specify the parameters of a process graph if the `subtype` is `process-graph`.
-    * `returns` to describe the return value of a process graph if the `subtype` is `process-graph`.
-
-    ### Subtypes
-
-    JSON Schema allows to specify only a small set of native data types (string, boolean, number, integer, array, object, null).
-    To support more fine grained data types, a custom [JSON Schema keyword](https://json-schema.org/draft-07/json-schema-core.html#rfc.section.6.4) has been defined: `subtype`.
-    It works similarly as the JSON Schema keyword [`format`](https://json-schema.org/draft-07/json-schema-validation.html#rfc.section.7)
-    and standardizes a number of common data types that extend the native data types, for example:
-    `bounding-box` (object with at least `west`, `south`, `east` and `north` properties),
-    `date-time` (string representation of date and time following RFC 3339),
-    `datacube` (a datacube with dimensions), etc.
-    The subtypes should be re-used in process schema definitions whenever suitable.
-    
-    If a general data type such as `string` or `number` is used in a schema, all subtypes with the same parent data type can be passed, too.
-    Clients should offer make passing subtypes as easy as passing a general data type.
-    For example, a parameter accepting strings must also allow passing a string with subtype `date` and thus clients should encourage this by also providing a date-picker.
-
-    A list of predefined subtypes is available as JSON Schema in [openeo-processes](https://github.com/Open-EO/openeo-processes).
-
-    ## Process Graphs
-
-    As defined above, a **process graph** is a chain of processes with explicit values for their parameters.
-    Technically, a process graph is defined to be a graph of connected processes with exactly one node returning the final result:
-
-    ```
-    <ProcessGraph> := {
-      "<ProcessNodeIdentifier>": <ProcessNode>,
-      ...
-    }
-    ```
-
-    `<ProcessNodeIdentifier>` is a unique key within the process graph that is used to reference (the return value of) this process in arguments of other processes. The identifier is unique only strictly within itself, excluding any parent and child process graphs. Process node identifiers are also strictly scoped and can not be referenced from child or parent process graphs. Circular references are not allowed.
-
-    Note: We provide a non-binding [JSON Schema for basic process graph validation](assets/pg-schema.json).
-
-    ### Processes (Process Nodes)
-
-    A single node in a process graph (i.e. a specific instance of a process) is defined as follows:
-
-    ```
-    <ProcessNode> := {
-      "process_id": <string>,
-      "namespace": <string> / null,
-      "description": <string>,
-      "arguments": <Arguments>,
-      "result": true / false
-    }
-    ```
-    A process node MUST always contain key-value-pairs named `process_id` and `arguments`. It MAY contain a `description`.
-
-    One of the nodes in a map of processes (the final one) MUST have the `result` flag set to `true`, all the other nodes can omit it as the default value is `false`. Having such a node is important as multiple end nodes are possible, but in most use cases it is important to exactly specify the return value to be used by other processes. Each child process graph must also specify a result node similar to the "main" process graph.
-
-    `process_id` MUST be a valid process ID in the `namespace` given. Clients SHOULD warn the user if a user-defined process is added with the same identifier as one of the predefined process.
-
-    ### Arguments
-
-    A process can have an arbitrary number of arguments. Their name and value are specified 
-    in the process specification as an object of key-value pairs:
-
-    ```
-    <Arguments> := {
-      "<ParameterName>": <string|number|boolean|null|array|object|ResultReference|UserDefinedProcess|ParameterReference>
-    }
-    ```
-
-    **Notes:**
-    - The specified data types are the native data types supported by JSON, except for `ResultReference`, `UserDefinedProcess` and `ParameterReference`.
-    - Objects are not allowed to have keys with the following reserved names:
-
-        * `from_node`, except for objects of type `ResultReference`
-        * `process_graph`, except for objects of type `UserDefinedProcess`
-        * `from_parameter`, except for objects of type `ParameterReference`
-
-    - Arrays and objects can also contain a `ResultReference`, a `UserDefinedProcess` or a `ParameterReference`. So back-ends must *fully* traverse the process graphs, including all children.
-
-    ### Accessing results of other process nodes
-
-    A value of type `<ResultReference>` is an object with a key `from_node` and a `<ProcessNodeIdentifier>` as corresponding value:
-
-    ```
-    <ResultReference> := {
-      "from_node": "<ProcessNodeIdentifier>"
-    }
-    ```
-
-    This tells the back-end that the process expects the result (i.e. the return value) from another process node to be passed as argument.
-    The `<ProcessNodeIdentifier>` is strictly scoped and can only reference nodes from within the same process graph, not child or parent process graphs.
-
-    ### Child processes
-
-    Some processes can run child processes, which is similar to the concept that other programming languages call
-    [callbacks](https://en.wikipedia.org/wiki/Callback_(computer_programming)) or lambda functions.
-    Each child process is simply a user-defined process again and can in theory be arbritarily complex.
-
-    A very simple example would be to calculate the absolute value of each pixel in a data cube.
-    This can be achieved in openEO by using the `apply` process which gets the `absolute` process passed as child process.
-    In this example, the "child" processes consists of a single process `absolute`, but it can also be a more complex computation such as an NDVI or a prediciton based on a machine learning model.
-
-    **Example**: 
-
-    A `<UserDefinedProcess>` argument MUST at least consist of an object with a key `process_graph`.
-    Optionally, it can also be described with the same additional properties available for predefined processes such as an id, parameters, return values etc.
-    When embedded in a process graph, these additional properties of a user-defined process are usually not used, except for validation purposes.
-
-    ```
-    <UserDefinedProcess> := {
-      "process_graph": <ProcessGraph>,
-      ...
-    }
-    ```
-
-    ### Accessing process parameters
-
-    A "parent" process that works with a child process can make so called *process graph parameters*
-    available to the "child" logic.
-    Processes in the "child" process graph can access these parameters by passing a `ParameterReference` object as argument.
-    It is an object with key `from_parameter` specifying the name of the process graph parameter:
-
-    ```
-    <ParameterReference> := {
-      "from_parameter": "<ParameterReferenceName>"
-    }
-    ```
-
-    The parameter names made available for `<ParameterReferenceName>` are defined and passed to the process graph by one of the parent entities.
-    The parent could be a process (such as `apply` or `reduce_dimension`) or something else that executes a process graph (a secondary web service for example).
-    If the parent is a process, the parameter are defined in the [`parameters` property](#section/Processes/Defining-Processes) of the corresponding JSON Schema.
-
-    In case of the example given above, the parameter `process` in the process [`apply`](https://processes.openeo.org/#apply) defines two process graph parameters: `x` (the value of each pixel that will be processed) and `context` (additional data passed through from the user).
-    The process `absolute` expects an argument with the same name `x`.
-    The process graph for the example would look as follows:
-
-    ```
-    {
-      "process_id": "apply",
-      "arguments": {
-        "data": {"from_node": "loadcollection1"}
-        "process": {
-          "process_graph": {
-            "abs1": {
-              "process_id": "absolute",
-              "arguments": {
-                "x": {"from_parameter": "x"}
-              },
-              "result": true
-            }
-          }
-        }
-      }
-    }
-    ```
-
-    `loadcollection1` would be a result from another process, which is not part of this example.
-
-    **Important:** `<ParameterReferenceName>` is less strictly scoped than `<ProcessNodeIdentifier>`.
-    `<ParameterReferenceName>` can be any parameter from the process graph or any of its parents.
-
-    The value for the parameter MUST be resolved as follows:
-    1. In general the most specific parameter value is used. This means the parameter value is resolved starting from the current scope and then checking each parent for a suitable parameter value until a parameter values is found or the "root" process graph has been reached.
-    2. In case a parameter value is not available, the most unspecific default value from the process graph parameter definitions are used. For example, if default values are available for the root process graph and all children, the default value from the root process graph is used.
-    3. If no default values are available either, the error `ProcessParameterMissing` must be thrown.
-
-    ### Full example for an EVI computation
-
-    Deriving minimum EVI (Enhanced Vegetation Index) measurements over pixel time series of Sentinel 2 imagery. The main process graph in blue, child process graphs in yellow:
-
-    ![Graph with processing instructions](assets/pg-evi-example.png)
-
-    The process graph for the algorithm: [pg-evi-example.json](assets/pg-evi-example.json)
-
-    ## Data Processing
-
-    Processes can run in three different ways:
-
-    1. Results can be pre-computed by creating a ***batch job***. They are submitted to the back-end's processing system, but will remain inactive until explicitly put into the processing queue. They will run only once and store results after execution. Results can be downloaded. Batch jobs are typically time consuming and user interaction is not possible although log files are generated for them. This is the only mode that allows to get an estimate about time, volume and costs beforehand.
-    
-    2. A more dynamic way of processing and accessing data is to create a **secondary web service**. They allow web-based access using different protocols such as [OGC WMS](http://www.opengeospatial.org/standards/wms), [OGC WCS](http://www.opengeospatial.org/standards/wcs), [OGC API - Features](https://www.ogc.org/standards/ogcapi-features) or [XYZ tiles](https://wiki.openstreetmap.org/wiki/Slippy_map_tilenames). Some protocols such as the OGC WMS or XYZ tiles allow users to change the viewing extent or level of detail (zoom level). Therefore, computations often run *on demand* so that the requested data is calculated during the request. Back-ends should make sure to cache processed data to avoid additional/high costs and reduce waiting times for the user.
-    
-    3. Processes can also be executed **on-demand** (i.e. synchronously). Results are delivered with the request itself and no job is created. Only lightweight computations, for example previews, should be executed using this approach as timeouts are to be expected for [long-polling HTTP requests](https://www.pubnub.com/blog/2014-12-01-http-long-polling/).
-
-    ### Validation
-
-    Process graph validation is a quite complex task. There's a [JSON schema](assets/pg-schema.json) for basic process graph validation. It checks the general structure of a process graph, but only checking against the schema is not fully validating a process graph. Note that this JSON Schema is probably good enough for a first version, but should be revised and improved for production. There are further steps to do:
-
-    1. Validate whether there's exactly one `result: true` per process graph.
-    2. Check whether the process names that are referenced in the field `process_id` are actually available in the corresponding `namespace`.
-    3. Validate all arguments for each process against the JSON schemas that are specified in the corresponding process specifications.
-    4. Check whether the values specified for `from_node` have a corresponding node in the same process graph.
-    5. Validate whether the return value and the arguments requesting a return value with `from_node` are compatible.
-    7. Check the content of arrays and objects. These could include parameter and result references (`from_node`, `from_parameter` etc.).
-
-
-    ### Execution
-
-    To process the process graph on the back-end you need to go through all nodes/processes in the list and set for each node to which node it passes data and from which it expects data. In another iteration the back-end can find all start nodes for processing by checking for zero dependencies.
-
-    You can now start and execute the start nodes (in parallel, if possible). Results can be passed to the nodes that were identified beforehand. For each node that depends on multiple inputs you need to check whether all dependencies have already finished and only execute once the last dependency is ready.
-
-    Please be aware that the result node (`result` set to `true`) is not necessarily the last node that is executed. The author of the process graph may choose to set a non-end node to the result node!
   contact:
     name: OGC Testbed 19
     url: 'https://www.ogc.org/initiatives/t-19/'
@@ -499,76 +262,34 @@ tags:
       * payments, i.e. topping up credits for pre-paid services or paying for post-paid services
       * other accounting related tasks, e.g. creating invoices,
       * user registration (except for [user registration with OpenID Connect](http://openid.net/specs/openid-connect-registration-1_0.html)).
-  - name: EO Data Discovery / Access
+  - name: Data Discovery / Access
     description: |-
-      These endpoints allow to list the collections that are available at the back-end and can be used as data cubes for data processing.
+      These endpoints allow to list the collections that are available at the back-end and can be used as data cubes for data processing. It builds on top of:
 
-      ## STAC
-      
-      For data discovery of Earth Observation Collections at the back-ends, this API strives for compatibility with the specifications [SpatioTemporal Asset Catalog (STAC)](https://stacspec.org/) and [OGC API - Features - Part 1: Core](http://docs.opengeospatial.org/is/17-069r3/17-069r3.html) as far as possible. Implementing these data discovery endpoints also produces valid STAC API 1.0 and OGC API - Features 1.0 responses. 
-
-      The data discovery endpoints `GET /collections` and `GET /collections/{collection_id}` are compatible with OGC API - Features and STAC. Both specifications define additional endpoints that need to be implemented to be fully compatible. The additional endpoints can easily be integrated into an geodatacube API implementation. A rough list of actions for compatibility is available below, but please refer to their specifications to find out the full details.
-
-      The geodatacube API implements STAC API versions >= 1.0.0.
-      
-      ### Content Extensions
-      
-      STAC has several [extensions](https://stac-extensions.github.io) that can be used to better describe your data. Clients and server are not required to implement all of them, so be aware that some clients may not be able to read all your metadata.
-      
-      Some commonly used extensions that are relevant for datasets exposed through the geodatacube API are:
-      
-      - Data Cube extension (part of the geodatacube API)
-      - [EO (Electro-Optical) extension](https://github.com/stac-extensions/eo)
-      - [Processing extension](https://github.com/stac-extensions/processing)
-      - [Raster extension](https://github.com/stac-extensions/raster)
-      - [SAR extension](https://github.com/stac-extensions/sar)
-      - [Satellite extension](https://github.com/stac-extensions/sat)
-      - [Scientific Citation extension](https://github.com/stac-extensions/scientific)
-
-      ### API Extensions
-      
-      STAC API has several [extensions](https://stac-api-extensions.github.io) that can be implemented on top of the geodatacube API to enrich the API functionality, e.g. for searching.
-  - name: Process Discovery
-    description: |-
-      These endpoints allow to list the predefined processes that are available at the back-end. To list user-defined processes see '[User-Defined Processes](#tag/User-Defined-Processes)'.
-  - name: User-Defined Processes
-    description: These endpoints allow to store and manage user-defined processes with their process graphs at the back-end.
-  - name: Data Processing
-    description: Organizes and manages data processing on the back-end, either as synchronous on-demand computation or batch jobs.
-  - name: Batch Jobs
-    description: Management of batch processing tasks (jobs) and their results.
-  - name: Secondary Services (OGC APIs)
-    description: On-demand access to data using other web service protocols (e.g., OGC API - Tiles / Maps).
+      - OGC API - Features - Part 1
+      - OGC API - Coverages - Part 1
+      - STAC API (incl. STAC Data Cube extension)
   - name: OGC API - Features
     description: Data access through OGC API - Features - Part 1 (v1.0.0) and STAC API (v1.0.0)
   - name: OGC API - Coverages
     description: Data access through OGC API - Coverages - Part 1 (v0.0.2)
+  - name: Process Discovery
+    description: |-
+      These endpoints allow to list the predefined processes that are available at the back-end. To list user-defined processes see 'openEO - User-Defined Processes'.
+  - name: OGC API - Processes
+    description: Data processing through OGC API - Processes - Part 1 (v1.0.0)
+  - name: openEO
+    description: Data processing through openEO (v1.2.0)
+  - name: openEO - User-Defined Processes
+    description: These endpoints allow to store and manage user-defined processes with their process graphs at the back-end.
+  - name: openEO - Secondary Services (OGC APIs)
+    description: On-demand access to data using other web service protocols (e.g., OGC API - Tiles / Maps).
 servers:
-  - url: 'https://geodatacube.example/api/{version}'
+  - url: 'https://geodatacube.example/api'
     description: >-
-      The URL of the API MAY freely be chosen by the back-end providers. The
-      path, including API versioning, is a *recommendation* only. Nevertheless,
-      all servers MUST support HTTPS as the authentication methods are not
-      secure with HTTP only!
-    variables:
-      version:
-        default: v1
-        description: |-
-          API versioning is RECOMMENDED. As the geodatacube API is following
-          [SemVer](https://semver.org/) only the **major** part of the version
-          numbers SHOULD be used for API versioning in the URL. To make clear
-          that it is a version number, it is RECOMMENDED to add the prefix `v`.
-
-          Example: API version `1.2.3` is recommended to use `v1`.
-
-          The reason to only consider the major part is that backward-incompatible
-          changes are introduced by major changes only. All changes from minor
-          and patch releases can usually be integrated without breakages and thus
-          a change in the URL is not really needed.
-          
-          The version number in the URL MUST not be used by the clients to detect
-          the version number of the API. Use the version number returned in the
-          property `api_version` from `GET /` instead.
+      The URL of the API MAY freely be chosen by the back-end providers.
+      Nevertheless, all servers MUST support HTTPS as the authentication methods
+      are not secure with HTTP only!
 paths:
   /:
     get:
@@ -580,8 +301,6 @@ paths:
         information.
       tags:
         - Capabilities
-        - OGC API - Features
-        - OGC API - Coverages
       security:
         - {}
       responses:
@@ -747,12 +466,10 @@ paths:
                       Use `service-desc` for machine-readable API definition and 
                       `service-doc` for human-readable API definition.
 
-                      4. `conformance` (required): A link to the Conformance declaration
-                      (see `/conformance`). 
-                      Required if full OGC API compatibility is desired.
+                      4. `http://www.opengis.net/def/rel/ogc/1.0/conformance` (required):
+                      A link to the Conformance declaration (see `/conformance`). 
 
                       5. `data` (required): A link to the collections (see `/collections`).
-                      Required if full OGC API compatibility is desired.
 
                       6. `create-form` (optional): A link to a user registration page.
 
@@ -787,7 +504,7 @@ paths:
                         type: text/html
                         title: Reset Password
                       - href: 'https://cloud.example/api/v1/conformance'
-                        rel: conformance
+                        rel: http://www.opengis.net/def/rel/ogc/1.0/conformance
                         type: application/json
                         title: OGC Conformance Classes
                       - href: 'https://cloud.example/api/v1/openapi.json'
@@ -838,8 +555,7 @@ paths:
 
         Format names MUST be accepted in a *case insensitive* manner throughout the API.
       tags:
-        - Capabilities
-        - Data Processing
+        - openEO
       security:
         - {}
         - Bearer: []
@@ -980,8 +696,6 @@ paths:
         - [OGC APIs](https://ogcapi.ogc.org/)
       tags:
         - Capabilities
-        - OGC API - Features
-        - OGC API - Coverages
       responses:
         '200':
           description: The URIs of all conformance classes supported by the server.
@@ -1020,9 +734,7 @@ paths:
         authorization, it is RECOMMENDED that clients (re-)request the collections
         with the Bearer token once available to also retrieve any private collections.
       tags:
-        - EO Data Discovery / Access
-        - OGC API - Features
-        - OGC API - Coverages
+        - Data Discovery / Access
       security:
         - {}
         - Bearer: []
@@ -1150,9 +862,7 @@ paths:
 
         Note: Providing the Bearer token is REQUIRED for private collections.
       tags:
-        - EO Data Discovery / Access
-        - OGC API - Features
-        - OGC API - Coverages
+        - Data Discovery / Access
       security:
         - {}
         - Bearer: []
@@ -1375,8 +1085,7 @@ paths:
 
         Note: Providing the Bearer token is REQUIRED for private collections.
       tags:
-        - EO Data Discovery / Access
-        - OGC API - Features
+        - Data Discovery / Access
       security:
         - {}
         - Bearer: []
@@ -1418,7 +1127,7 @@ paths:
   "/collections/{collection_id}/items":
     get:
       tags:
-        - EO Data Discovery / Access
+        - Data Discovery / Access
         - OGC API - Features
       summary: Fetch Features / Items
       description: |-
@@ -1483,9 +1192,9 @@ paths:
   "/collections/{collection_id}/items/{feature_id}":
     get:
       tags:
-        - EO Data Discovery / Access
+        - Data Discovery / Access
         - OGC API - Features
-      summary: Fetch a single Feature / Item
+      summary: Fetch a Feature / Item
       description: |-
         Fetch the feature with id `feature_id` in the feature collection
         with id `collection_id`.
@@ -1511,9 +1220,9 @@ paths:
   "/collections/{collection_id}/coverage":
     get:
       tags:
-      - EO Data Discovery / Access
+      - Data Discovery / Access
       - OGC API - Coverages
-      summary: Retrieve the coverage identified by {collection_id}
+      summary: Retrieve a coverage
       description: |-
         Coverage identified by {collection_id}.
         Use content negotiation to request required format.
@@ -1556,7 +1265,7 @@ paths:
   "/collections/{collection_id}/coverage/domainset":
     get:
       tags:
-      - EO Data Discovery / Access
+      - Data Discovery / Access
       - OGC API - Coverages
       summary: Retrieve a coverage's domainset
       description: a coverage's domainset; use content negotiation to request
@@ -1588,7 +1297,7 @@ paths:
   "/collections/{collection_id}/coverage/rangetype":
     get:
       tags:
-      - EO Data Discovery / Access
+      - Data Discovery / Access
       - OGC API - Coverages
       summary: Retrieve a coverage's rangetype
       description: a coverage's rangetype; use content negotiation to request
@@ -1614,7 +1323,7 @@ paths:
   "/collections/{collection_id}/coverage/rangeset":
     get:
       tags:
-      - EO Data Discovery / Access
+      - Data Discovery / Access
       - OGC API - Coverages
       summary: Retrieve a coverage's rangeset
       description: a coverage's rangeset (i.e., the data record values only);
@@ -1650,7 +1359,7 @@ paths:
   "/collections/{collection_id}/coverage/metadata":
     get:
       tags:
-      - EO Data Discovery / Access
+      - Data Discovery / Access
       - OGC API - Coverages
       summary: Retrieve coverage's metadata
       description: a coverage's metadata
@@ -1676,11 +1385,15 @@ paths:
     get:
       summary: Supported predefined processes
       operationId: list-processes
-      description: >-
+      description: |-
         Lists all predefined processes and returns
         detailed process descriptions, including parameters and return values.
+
+        **NOTE:** This endpoint may return processes from openEO and OGC API - Processes. Distinguish them via the `version` property (OGC API) and the `parameters` / `returns` (openEO) properties.
       tags:
         - Process Discovery
+        - OGC API - Processes
+        - openEO
       security:
         - {}
         - Bearer: []
@@ -1701,16 +1414,20 @@ paths:
                   processes:
                     type: array
                     items:
-                      title: Predefined Process
-                      description: A predefined process made available by the back-end.
-                      type: object
-                      required:
-                        - id
-                        - description
-                        - parameters
-                        - returns
-                      allOf:
-                        - $ref: '#/components/schemas/process'
+                      oneOf:
+                        - title: openEO Predefined Process
+                          description: A predefined process made available by the back-end.
+                          type: object
+                          required:
+                            - id
+                            - description
+                            - parameters
+                            - returns
+                          allOf:
+                            - $ref: '#/components/schemas/process'
+                        - title: OGC API Process
+                          allOf:
+                          - $ref: '#/components/schemas/ogc_processSummary'
                   links:
                     $ref: '#/components/schemas/links_pagination'
               example:
@@ -1799,10 +1516,93 @@ paths:
                     href: 'https://geodatacube.example/processes'
                     type: text/html
                     title: HTML version of the processes
+  /processes/{processID}:
+    get:
+      tags:
+      - Process Discovery
+      - OGC API - Processes
+      summary: Retrieve an OGC API process description
+      description: |
+        The process description contains information about inputs and outputs and a link to the execution-endpoint for the process. The Core does not mandate the use of a specific process description to specify the interface of a process. That said, the Core requirements class makes the following recommendation:
+
+        Implementations SHOULD consider supporting the OGC process description.
+
+        For more information, see [Section 7.10](https://docs.ogc.org/is/18-062/18-062.html#sc_process_description).
+      operationId: describe-ogc-process
+      parameters:
+      - $ref: '#/components/parameters/ogc_processID'
+      responses:
+        "200":
+          description: A process description.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ogc_process'
         4XX:
           $ref: '#/components/responses/client_error_auth'
         5XX:
           $ref: '#/components/responses/server_error'
+  /processes/{processID}/execution:
+    post:
+      tags:
+      - OGC API - Processes
+      summary: OGC API / Execute a process
+      description: |
+        Create a new job.
+
+        For more information, see [Section 7.11](https://docs.ogc.org/is/18-062/18-062.html#sc_create_job).
+      operationId: execute-ogc-process
+      parameters:
+      - $ref: '#/components/parameters/ogc_processID'
+      requestBody:
+        description: Mandatory execute request JSON
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ogc_execute'
+        required: true
+      responses:
+        "200":
+          description: Result of synchronous execution
+          content:
+            /*:
+              schema:
+                description: Any kind of data could be returned.
+        "201":
+          description: Started asynchronous execution. Created job.
+          headers:
+            Location:
+              description: URL to check the status of the execution/job.
+              style: simple
+              explode: false
+              schema:
+                type: string
+            Preference-Applied:
+              description: The preference applied to execute the process asynchronously (see. RFC 2740).
+              style: simple
+              explode: false
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ogc_statusInfo'
+        4XX:
+          $ref: '#/components/responses/client_error_auth'
+        5XX:
+          $ref: '#/components/responses/server_error'
+      callbacks:
+        jobCompleted:
+          '{$request.body#/subscriber/successUri}':
+            post:
+              requestBody:
+                content:
+                  application/json:
+                    schema:
+                      $ref: '#/components/schemas/ogc_results'
+              responses:
+                "200":
+                  description: Results received successfully
   /credentials/basic:
     get:
       summary: HTTP Basic authentication
@@ -1857,6 +1657,230 @@ paths:
           $ref: '#/components/responses/client_error_auth'
         5XX:
           $ref: '#/components/responses/server_error'
+  /credentials/oidc:
+    get:
+      summary: OpenID Connect authentication
+      operationId: authenticate-oidc
+      description: |-
+        Lists the supported [OpenID Connect](http://openid.net/connect/)
+        providers (OP). OpenID Connect Providers MUST support [OpenID Connect
+        Discovery](http://openid.net/specs/openid-connect-discovery-1_0.html).
+
+        It is highly RECOMMENDED to implement OpenID Connect for public services
+        in favor of Basic authentication.
+
+        openEO clients MUST use the **access token** as part of the Bearer token
+        for authorization in subsequent API calls (see also the information
+        about Bearer tokens in this document). Clients MUST NOT use the id token
+        or the authorization code. The access token provided by an OpenID Connect
+        Provider does not necessarily provide information about the issuer (i.e. the
+        OpenID Connect provider) and therefore a prefix MUST be added to the Bearer
+        Token sent in subsequent API calls to protected endpoints. The Bearer
+        Token sent to protected endpoints MUST consist of the authentication
+        method (here `oidc`), the provider ID and the access token itself. All
+        separated by a forward slash `/`. The provider ID corresponds to the
+        value specified for `id` for each provider in the response body of this
+        endpoint.  The header in subsequent API calls for a provider with `id`
+        `ms` would look as follows: `Authorization: Bearer oidc/ms/TOKEN`
+        (replace `TOKEN` with the actual access token received from the OpenID
+        Connect Provider).
+
+        Back-ends MAY request user information ([including Claims](https://openid.net/specs/openid-connect-core-1_0.html#Claims))
+        from the [OpenID Connect Userinfo endpoint](https://openid.net/specs/openid-connect-core-1_0.html#UserInfo)
+        using the access token (without the prefix described above). Therefore,
+        both openEO client and openEO back-end are relying parties (clients) to
+        the OpenID Connect Provider.
+      tags:
+        - Account Management
+      security:
+        - {}
+      responses:
+        '200':
+          description: Lists the the OpenID Connect Providers.
+          content:
+            application/json:
+              schema:
+                title: OpenID Connect Providers
+                type: object
+                required:
+                  - providers
+                properties:
+                  providers:
+                    type: array
+                    description: >-
+                      The first provider in this list is the default provider for authentication.
+                      Clients can either pre-select or directly use the default provider for authentication
+                      if the user doesn't specify a specific value.
+                    minItems: 1
+                    items:
+                      title: OpenID Connect Provider
+                      type: object
+                      required:
+                        - id
+                        - issuer
+                        - title
+                      properties:
+                        id:
+                          type: string
+                          description: >-
+                            A per-backend **unique** identifier for the OpenID Connect Provider to
+                            be as prefix for the Bearer token.
+                          pattern: '[\d\w]{1,20}'
+                        issuer:
+                          type: string
+                          format: uri
+                          description: >-
+                            The [issuer location](https://openid.net/specs/openid-connect-discovery-1_0.html#ProviderConfig)
+                            (also referred to as 'authority' in some client libraries) is the URL of the
+                            OpenID Connect provider, which conforms to a set of rules:
+
+                            1. After appending `/.well-known/openid-configuration` to the URL, a
+                            [HTTP/1.1 GET
+                            request](https://openid.net/specs/openid-connect-discovery-1_0.html#ProviderConfigurationRequest)
+                            to the concatenated URL MUST return a [OpenID Connect Discovery Configuration
+                            Response](https://openid.net/specs/openid-connect-discovery-1_0.html#ProviderConfigurationResponse).
+                            The response provides all information required to authenticate using
+                            OpenID Connect.
+
+                            2. The URL MUST NOT contain a terminating forward slash `/`.
+
+                          example: 'https://accounts.google.com'
+                        scopes:
+                          type: array
+                          description: >-
+                            A list of OpenID Connect scopes that the client MUST at least include when requesting authorization.
+                            Clients MAY add additional scopes such as the `offline_access` scope to retrieve a refresh token.
+
+                            If scopes are specified, the list MUST at least contain the `openid` scope.
+                          items:
+                            type: string
+                        title:
+                          type: string
+                          description: >-
+                            The name that is publicly shown in clients for this
+                            OpenID Connect provider.
+                        description:
+                          type: string
+                          format: commonmark
+                          description: |-
+                            A description that explains how the authentication procedure works.
+
+                            It should make clear how to register and get credentials. This should
+                            include instruction on setting up `client_id`, `client_secret` and `redirect_uri`.
+
+                            [CommonMark 0.29](http://commonmark.org/) syntax MAY be used for rich
+                            text representation.
+                        default_clients:
+                          title: Default OpenID Connect Clients
+                          type: array
+                          description: |-
+                            List of default OpenID Connect clients that can be used by an openEO client
+                            for OpenID Connect based authentication.
+
+                            A default OpenID Connect client is managed by the back-end implementer.
+                            It MUST be configured to be usable without a client secret,
+                            which limits its applicability to OpenID Connect grant types like
+                            "Authorization Code Grant with PKCE" and "Device Authorization Grant with PKCE"
+
+                            A default OpenID Connect client is provided without availability guarantees.
+                            The back-end implementer CAN revoke, reset or update it any time.
+                            As such, openEO clients SHOULD NOT store or cache default OpenID Connect client information
+                            for long term usage.
+                            A default OpenID Connect client is intended to simplify authentication for novice users.
+                            For production use cases, it is RECOMMENDED to set up a dedicated OpenID Connect client.
+                          uniqueItems: true
+                          items:
+                            title: Default OpenID Connect Client
+                            type: object
+                            required:
+                              - id
+                              - grant_types
+                            properties:
+                              id:
+                                type: string
+                                description: >-
+                                  The OpenID Connect Client ID to be used in the authentication procedure.
+                              grant_types:
+                                type: array
+                                description: |-
+                                  List of authorization grant types (flows) supported by the OpenID Connect client.
+                                  A grant type descriptor consist of a OAuth 2.0 grant type,
+                                  with an additional `+pkce` suffix when the grant type should be used with
+                                  the PKCE extension as defined in [RFC 7636](https://www.rfc-editor.org/rfc/rfc7636.html).
+
+                                  Allowed values:
+                                  - `implicit`: Implicit Grant as specified in [RFC 6749, sec. 1.3.2](https://www.rfc-editor.org/rfc/rfc6749.html#section-1.3.2)
+                                  - `authorization_code` / `authorization_code+pkce`: Authorization Code Grant as specified in [RFC 6749, sec. 1.3.1](https://www.rfc-editor.org/rfc/rfc6749.html#section-1.3.1), with or without PKCE extension.
+                                  - `urn:ietf:params:oauth:grant-type:device_code` / `urn:ietf:params:oauth:grant-type:device_code+pkce`: Device Authorization Grant (aka Device Code Flow) as specified in [RFC 8628](https://www.rfc-editor.org/rfc/rfc8628.html), with or without PKCE extension. Note that the combination of this grant with the PKCE extension is *not standardized* yet.
+                                  - `refresh_token`: Refresh Token as specified in [RFC 6749, sec. 1.5](https://www.rfc-editor.org/rfc/rfc6749.html#section-1.5)
+                                minItems: 1
+                                uniqueItems: true
+                                items:
+                                  type: string
+                                  enum:
+                                    - 'implicit'
+                                    - 'authorization_code'
+                                    - 'authorization_code+pkce'
+                                    - 'urn:ietf:params:oauth:grant-type:device_code'
+                                    - 'urn:ietf:params:oauth:grant-type:device_code+pkce'
+                                    - 'refresh_token'
+                              redirect_urls:
+                                type: array
+                                description: |-
+                                  List of redirect URLs that are whitelisted by the OpenID Connect client.
+                                  Redirect URLs MUST be provided when the OpenID Connect client supports
+                                  the Implicit Grant or the Authorization Code Grant (with or without PKCE extension).
+                                uniqueItems: true
+                                items:
+                                  type: string
+                                  format: uri
+                        links:
+                          type: array
+                          description: |-
+                            Links related to this provider, for example a
+                            help page or a page to register a new user account.
+
+                            For relation types see the lists of
+                            [common relation types in openEO](#section/API-Principles/Web-Linking).
+                          items:
+                            $ref: '#/components/schemas/link'
+              example:
+                providers:
+                  - id: egi
+                    issuer: 'https://aai.egi.eu/oidc'
+                    title: EGI (default)
+                    description: Login with your academic account.
+                    scopes:
+                      - openid
+                      - profile
+                      - email
+                    default_clients:
+                      - id: KStcUzD5AIUA
+                        grant_types:
+                          - implicit
+                          - authorization_code+pkce
+                          - urn:ietf:params:oauth:grant-type:device_code+pkce
+                          - refresh_token
+                        redirect_urls:
+                          - https://editor.openeo.org/
+                  - id: google
+                    issuer: 'https://accounts.google.com'
+                    title: Google
+                    description: Login with your Google Account.
+                    scopes:
+                      - openid
+                      - profile
+                      - email
+                      - earthengine
+                  - id: ms
+                    issuer: 'https://login.microsoftonline.com/example-tenant/v2.0'
+                    title: Microsoft
+                    description: Login with your Microsoft or Skype Account.
+                    scopes: []
+        4XX:
+          $ref: '#/components/responses/client_error_auth'
+        5XX:
+          $ref: '#/components/responses/server_error'
   /result:
     post:
       summary: Process and download data synchronously
@@ -1871,7 +1895,7 @@ paths:
         Back-ends MAY send the an error immediately if the computation is expected to time out.
         Otherwise requests MAY time-out after a certain amount of time by sending an error.
       tags:
-        - Data Processing
+        - openEO
       security:
         - Bearer: []
       responses:
@@ -1924,7 +1948,7 @@ paths:
                 description: You can add additional back-end specific properties here.
   /process_graphs:
     get:
-      summary: List all user-defined processes
+      summary: List all user-defined openEO processes
       operationId: list-custom-processes
       description: |-
         Lists all user-defined processes (process graphs) of the
@@ -1936,8 +1960,8 @@ paths:
         To get the full metadata for a user-defined process clients MUST
         request `GET /process_graphs/{process_graph_id}`.
       tags:
-        - User-Defined Processes
         - Process Discovery
+        - openEO - User-Defined Processes
       security:
         - Bearer: []
       parameters:
@@ -2018,8 +2042,7 @@ paths:
       operationId: describe-custom-process
       description: Lists all information about a user-defined process, including its process graph.
       tags:
-        - User-Defined Processes
-        - Process Discovery
+        - openEO - User-Defined Processes
       security:
         - Bearer: []
       responses:
@@ -2060,7 +2083,7 @@ paths:
         replaced with the value from the `process_graph_id` parameter in the
         path.
       tags:
-        - User-Defined Processes
+        - openEO - User-Defined Processes
       security:
         - Bearer: []
       responses:
@@ -2088,7 +2111,7 @@ paths:
 
         Does NOT delete jobs or services that reference this user-defined process.
       tags:
-        - User-Defined Processes
+        - openEO - User-Defined Processes
       security:
         - Bearer: []
       responses:
@@ -2129,8 +2152,7 @@ paths:
 
         Service names MUST be accepted in a *case insensitive* manner throughout the API.
       tags:
-        - Capabilities
-        - Secondary Services (OGC APIs)
+        - openEO - Secondary Services (OGC APIs)
       security:
         - {}
         - Bearer: []
@@ -2271,7 +2293,7 @@ paths:
         To get the full metadata for a secondary web service clients MUST
         request `GET /services/{service_id}`.
       tags:
-        - Secondary Services (OGC APIs)
+        - openEO - Secondary Services (OGC APIs)
       security:
         - Bearer: []
       parameters:
@@ -2319,7 +2341,7 @@ paths:
         paid by the owner, but this depends on the service type and whether it
         supports charging fees or not.
       tags:
-        - Secondary Services (OGC APIs)
+        - openEO - Secondary Services (OGC APIs)
       security:
         - Bearer: []
       responses:
@@ -2391,7 +2413,7 @@ paths:
 
         User have to create a new service to change the service type.
       tags:
-        - Secondary Services (OGC APIs)
+        - openEO - Secondary Services (OGC APIs)
       security:
         - Bearer: []
       responses:
@@ -2427,7 +2449,7 @@ paths:
       operationId: describe-service
       description: Lists all information about a secondary web service.
       tags:
-        - Secondary Services (OGC APIs)
+        - openEO - Secondary Services (OGC APIs)
       security:
         - Bearer: []
       responses:
@@ -2456,7 +2478,7 @@ paths:
         this is not possible any more. This service won't generate additional
         costs.
       tags:
-        - Secondary Services (OGC APIs)
+        - openEO - Secondary Services (OGC APIs)
       security:
         - Bearer: []
       responses:
@@ -2484,7 +2506,7 @@ paths:
         While pagination itself is OPTIONAL, the `offset` parameter is REQUIRED
         to be implemented by back-ends.
       tags:
-        - Secondary Services (OGC APIs)
+        - openEO - Secondary Services (OGC APIs)
       security:
         - Bearer: []
       parameters:
@@ -2508,11 +2530,13 @@ paths:
         
         It is **strongly RECOMMENDED** to keep the response size small by
         omitting all optional non-scalar values (i.e. arrays and objects) from
-        objects in `jobs` (i.e. the `process` property).
+        objects in `jobs`.
         To get the full metadata for a job clients MUST request `GET /jobs/{job_id}`.
+
+        **NOTE:** This endpoint may return jobs from openEO and OGC API - Processes. Distinguish them via the `jobID` (OGC API) and the `id` (openEO) property.
       tags:
-        - Data Processing
-        - Batch Jobs
+        - OGC API - Processes
+        - openEO
       security:
         - Bearer: []
       parameters:
@@ -2532,7 +2556,13 @@ paths:
                   jobs:
                     type: array
                     items:
-                      $ref: '#/components/schemas/batch_job'
+                      oneOf:
+                        - title: openEO Batch Job
+                          allOf:
+                            - $ref: '#/components/schemas/batch_job'
+                        - title: OGC API Job
+                          allOf:
+                            - $ref: '#/components/schemas/ogc_statusInfo'
                   links:
                     $ref: '#/components/schemas/links_pagination'
         4XX:
@@ -2549,8 +2579,7 @@ paths:
         Processing the data doesn't start yet. The job status gets initialized
         as `created` by default.
       tags:
-        - Data Processing
-        - Batch Jobs
+        - openEO
       security:
         - Bearer: []
       responses:
@@ -2613,8 +2642,7 @@ paths:
         Jobs can only be modified when the job is not queued and not running.
         Otherwise, requests to this endpoint MUST be rejected with an error.
       tags:
-        - Data Processing
-        - Batch Jobs
+        - openEO
       security:
         - Bearer: []
       responses:
@@ -2644,10 +2672,13 @@ paths:
     get:
       summary: Full metadata for a batch job
       operationId: describe-job
-      description: Lists all information about a submitted batch job.
+      description: |-
+        Lists information about a batch job.
+
+        **NOTE:** This endpoint may return a job from openEO or OGC API - Processes. Distinguish them via the `jobID` (OGC API) and the `id` (openEO) property.
       tags:
-        - Data Processing
-        - Batch Jobs
+        - openEO
+        - OGC API - Processes
       security:
         - Bearer: []
       responses:
@@ -2656,11 +2687,16 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                required:
-                  - process
-                allOf:
-                  - $ref: '#/components/schemas/batch_job'
+                oneOf:
+                  - title: openEO Batch Job
+                    type: object
+                    required:
+                      - process
+                    allOf:
+                      - $ref: '#/components/schemas/batch_job'
+                  - title: OGC API Job
+                    allOf:
+                      - $ref: '#/components/schemas/ogc_statusInfo'
         4XX:
           $ref: '#/components/responses/client_error_auth'
         5XX:
@@ -2673,13 +2709,19 @@ paths:
         computed results are deleted. This job won't generate additional costs
         for processing.
       tags:
-        - Data Processing
-        - Batch Jobs
+        - openEO
+        - OGC API - Processes
       security:
         - Bearer: []
       responses:
+        '200':
+          description: The job has been successfully deleted (OGC API - Processes).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ogc_statusInfo'
         '204':
-          description: The job has been successfully deleted.
+          description: The job has been successfully deleted (openEO).
         4XX:
           $ref: '#/components/responses/client_error_auth'
         5XX:
@@ -2702,8 +2744,7 @@ paths:
         While pagination itself is OPTIONAL, the `offset` parameter is REQUIRED
         to be implemented by back-ends.
       tags:
-        - Data Processing
-        - Batch Jobs
+        - openEO
       security:
         - Bearer: []
       parameters:
@@ -2725,6 +2766,14 @@ paths:
       summary: List batch job results
       operationId: list-results
       description: |-
+        **NOTE:** This endpoint may return a job from openEO or OGC API - Processes. Distinguish them via the `assets` property which is always present for openEO, but not for OGC API - Processes.
+
+        ## OGC API - Processes
+        Lists available results of a job. In case of a failure, lists exceptions instead.
+
+        For more information, see [Section 7.13](https://docs.ogc.org/is/18-062/18-062.html#sc_retrieve_job_results).
+
+        ## openEO
         Lists signed URLs pointing to the processed files, usually after the batch job
         has finished. Back-ends may also point to intermediate results after the
         job has stopped due to an error or if the `partial` parameter has been set.
@@ -2765,14 +2814,14 @@ paths:
         If processing has not finished yet and the `partial` parameter is not set to `true`
         requests to this endpoint MUST be rejected an error.
       tags:
-        - Data Processing
-        - Batch Jobs
+        - openEO
+        - OGC API - Processes
       security:
         - Bearer: []
       parameters:
         - name: partial
           description: >-
-            If set to `true`, the results endpoint returns incomplete results while
+            **openEO only**: If set to `true`, the results endpoint returns incomplete results while
             still running.
           in: query
           allowEmptyValue: true
@@ -2782,12 +2831,12 @@ paths:
       responses:
         '200':
           description: >-
-            Valid download links have been returned. The download links doesn't
-            necessarily need to be located under the API base url.
+            Provides the results.
           content:
             application/json:
               schema:
                 oneOf:
+                  - $ref: '#/components/schemas/ogc_results'
                   - $ref: '#/components/schemas/batch_job_result'
                   - title: Batch Job Results Response as STAC Collection
                     type: object
@@ -2905,8 +2954,7 @@ paths:
         `running`. In particular, it doesn't restart a running job. To restart
         a queued or running job, processing MUST have been canceled before.
       tags:
-        - Data Processing
-        - Batch Jobs
+        - openEO
       security:
         - Bearer: []
       responses:
@@ -2937,8 +2985,7 @@ paths:
         beforehand and partial or preliminary results are available to be
         downloaded. Otherwise the status is set to `created`. 
       tags:
-        - Data Processing
-        - Batch Jobs
+        - openEO
       security:
         - Bearer: []
       responses:
@@ -3061,6 +3108,282 @@ paths:
           $ref: '#/components/responses/server_error'
 components:
   schemas:
+    ogc_processSummary:
+      allOf:
+      - $ref: '#/components/schemas/descriptionType'
+      - required:
+        - id
+        - version
+        type: object
+        properties:
+          id:
+            type: string
+          version:
+            type: string
+          jobControlOptions:
+            type: array
+            items:
+              $ref: '#/components/schemas/jobControlOptions'
+          outputTransmission:
+            type: array
+            items:
+              $ref: '#/components/schemas/transmissionMode'
+          links:
+            type: array
+            items:
+              $ref: '#/components/schemas/link'
+    ogc_process:
+      allOf:
+      - $ref: '#/components/schemas/ogc_processSummary'
+      - type: object
+        properties:
+          inputs:
+            type: object
+            additionalProperties:
+              $ref: '#/components/schemas/inputDescription'
+          outputs:
+            type: object
+            additionalProperties:
+              $ref: '#/components/schemas/outputDescription'
+    ogc_execute:
+      type: object
+      properties:
+        inputs:
+          type: object
+          additionalProperties:
+            oneOf:
+            - $ref: '#/components/schemas/inlineOrRefData'
+            - type: array
+              items:
+                $ref: '#/components/schemas/inlineOrRefData'
+        outputs:
+          type: object
+          additionalProperties:
+            $ref: '#/components/schemas/ogc_output'
+        response:
+          type: string
+          default: raw
+          enum:
+          - raw
+          - document
+        subscriber:
+          $ref: '#/components/schemas/ogc_subscriber'
+    ogc_results:
+      title: OGC API Results
+      type: object
+      additionalProperties:
+        $ref: '#/components/schemas/inlineOrRefData'
+    ogc_statusInfo:
+      required:
+      - jobID
+      - status
+      - type
+      type: object
+      properties:
+        processID:
+          type: string
+        type:
+          type: string
+          enum:
+          - process
+        jobID:
+          type: string
+        status:
+          $ref: '#/components/schemas/ogc_statusCode'
+        message:
+          type: string
+        created:
+          type: string
+          format: date-time
+        started:
+          type: string
+          format: date-time
+        finished:
+          type: string
+          format: date-time
+        updated:
+          type: string
+          format: date-time
+        progress:
+          maximum: 100
+          minimum: 0
+          type: integer
+        links:
+          type: array
+          items:
+            $ref: '#/components/schemas/link'
+    ogc_statusCode:
+      type: string
+      nullable: false
+      enum:
+      - accepted
+      - running
+      - successful
+      - failed
+      - dismissed
+    ogc_output:
+      type: object
+      properties:
+        format:
+          $ref: '#/components/schemas/ogc_format'
+        transmissionMode:
+          $ref: '#/components/schemas/transmissionMode'
+    ogc_format:
+      type: object
+      properties:
+        mediaType:
+          type: string
+        encoding:
+          type: string
+        schema:
+          oneOf:
+          - type: string
+            format: url
+          - type: object
+    ogc_subscriber:
+      required:
+      - successUrl
+      type: object
+      properties:
+        successUri:
+          type: string
+          format: uri
+        inProgressUri:
+          type: string
+          format: uri
+        failedUri:
+          type: string
+          format: uri
+      description: |-
+        Optional URIs for callbacks for this job.
+
+        Support for this parameter is not required and the parameter may be
+        removed from the API definition, if conformance class **'callback'**
+        is not listed in the conformance declaration under `/conformance`.
+    inlineOrRefData:
+      oneOf:
+      - $ref: '#/components/schemas/inputValueNoObject'
+      - $ref: '#/components/schemas/qualifiedInputValue'
+      - $ref: '#/components/schemas/link'
+    inputValue:
+      oneOf:
+      - $ref: '#/components/schemas/inputValueNoObject'
+      - type: object
+    inputValueNoObject:
+      oneOf:
+      - type: string
+      - type: number
+      - type: integer
+      - type: boolean
+      - type: array
+        items:
+          type: string
+      - $ref: '#/components/schemas/binaryInputValue'
+      - $ref: '#/components/schemas/bbox'
+    binaryInputValue:
+      type: string
+      format: byte
+    qualifiedInputValue:
+      allOf:
+      - $ref: '#/components/schemas/ogc_format'
+      - required:
+        - value
+        type: object
+        properties:
+          value:
+            $ref: '#/components/schemas/inputValue'
+    inputDescription:
+      allOf:
+      - $ref: '#/components/schemas/descriptionType'
+      - required:
+        - schema
+        type: object
+        properties:
+          minOccurs:
+            type: integer
+            default: 1
+          maxOccurs:
+            oneOf:
+            - type: integer
+              default: 1
+            - type: string
+              enum:
+              - unbounded
+          schema:
+            $ref: '#/components/schemas/json_schema'
+    outputDescription:
+      allOf:
+      - $ref: '#/components/schemas/descriptionType'
+      - required:
+        - schema
+        type: object
+        properties:
+          schema:
+            $ref: '#/components/schemas/json_schema'
+    descriptionType:
+      type: object
+      properties:
+        title:
+          type: string
+        description:
+          type: string
+        keywords:
+          type: array
+          items:
+            type: string
+        metadata:
+          type: array
+          items:
+            $ref: '#/components/schemas/metadata'
+        additionalParameters:
+          allOf:
+          - $ref: '#/components/schemas/metadata'
+          - type: object
+            properties:
+              parameters:
+                type: array
+                items:
+                  $ref: '#/components/schemas/additionalParameter'
+    jobControlOptions:
+      type: string
+      enum:
+      - sync-execute
+      - async-execute
+      - dismiss
+    transmissionMode:
+      type: string
+      default: value
+      enum:
+      - value
+      - reference
+    metadata:
+      type: object
+      properties:
+        title:
+          type: string
+        role:
+          type: string
+        href:
+          type: string
+    additionalParameter:
+      required:
+      - name
+      - value
+      type: object
+      properties:
+        name:
+          type: string
+        value:
+          type: array
+          items:
+            oneOf:
+            - type: string
+            - type: number
+            - type: integer
+            - type: array
+              items:
+                type: object
+            - type: object
     extent-uad:
       title: Extent with Uniform Additional Dimensions Schema
       description: |-
@@ -4397,7 +4720,7 @@ components:
         links:
           $ref: '#/components/schemas/links'
     batch_job_result:
-      title: Batch Job Results Response as STAC Item
+      title: openEO - Batch Job Results Response as STAC Item
       description:
         The STAC specification should be the main guidance for implementing this.
 
@@ -6866,6 +7189,15 @@ components:
           schema:
             $ref: '#/components/schemas/error'
   parameters:
+    ogc_processID:
+      name: processID
+      description: ID of the OGC process
+      in: path
+      required: true
+      style: simple
+      explode: false
+      schema:
+        type: string
     f-metadata:
       name: f
       in: query
