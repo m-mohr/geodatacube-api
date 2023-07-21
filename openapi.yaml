@@ -1142,6 +1142,9 @@ paths:
         - $ref: "#/components/parameters/pagination_limit"
         - $ref: "#/components/parameters/bbox"
         - $ref: "#/components/parameters/datetime"
+      security:
+        - {}
+        - Bearer: []
       responses:
         "200":
           description: |-
@@ -1199,6 +1202,9 @@ paths:
         Fetch the feature with id `feature_id` in the feature collection
         with id `collection_id`.
       operationId: describe-item
+      security:
+        - {}
+        - Bearer: []
       parameters:
         - $ref: '#/components/parameters/collection_id'
         - $ref: "#/components/parameters/feature_id"
@@ -1227,6 +1233,9 @@ paths:
         Coverage identified by {collection_id}.
         Use content negotiation to request required format.
       operationId: describe-coverage
+      security:
+        - {}
+        - Bearer: []
       parameters:
       - "$ref": "#/components/parameters/collection_id"
       - "$ref": "#/components/parameters/subset"
@@ -1271,6 +1280,9 @@ paths:
       description: a coverage's domainset; use content negotiation to request
         HTML or JSON
       operationId: describe-coverage-domainset
+      security:
+        - {}
+        - Bearer: []
       parameters:
       - "$ref": "#/components/parameters/collection_id"
       - "$ref": "#/components/parameters/subset"
@@ -1303,6 +1315,9 @@ paths:
       description: a coverage's rangetype; use content negotiation to request
         HTML or JSON
       operationId: describe-coverage-rangetype
+      security:
+        - {}
+        - Bearer: []
       parameters:
       - "$ref": "#/components/parameters/collection_id"
       - "$ref": "#/components/parameters/f-rangetype"
@@ -1329,6 +1344,9 @@ paths:
       description: a coverage's rangeset (i.e., the data record values only);
         use content negotiation to specify output format
       operationId: describe-coverage-rangeset
+      security:
+        - {}
+        - Bearer: []
       parameters:
       - "$ref": "#/components/parameters/collection_id"
       - "$ref": "#/components/parameters/subset"
@@ -1364,6 +1382,9 @@ paths:
       summary: Retrieve coverage's metadata
       description: a coverage's metadata
       operationId: describe-coverage-metadata
+      security:
+        - {}
+        - Bearer: []
       parameters:
       - "$ref": "#/components/parameters/collection_id"
       - "$ref": "#/components/parameters/f-metadata"
@@ -1529,6 +1550,9 @@ paths:
 
         For more information, see [Section 7.10](https://docs.ogc.org/is/18-062/18-062.html#sc_process_description).
       operationId: describe-ogc-process
+      security:
+        - {}
+        - Bearer: []
       parameters:
       - $ref: '#/components/parameters/ogc_processID'
       responses:
@@ -1552,6 +1576,8 @@ paths:
 
         For more information, see [Section 7.11](https://docs.ogc.org/is/18-062/18-062.html#sc_create_job).
       operationId: execute-ogc-process
+      security:
+        - Bearer: []
       parameters:
       - $ref: '#/components/parameters/ogc_processID'
       requestBody:
