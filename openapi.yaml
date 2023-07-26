@@ -266,24 +266,28 @@ tags:
     description: |-
       These endpoints allow to list the collections that are available at the back-end and can be used as data cubes for data processing. It builds on top of:
 
-      - OGC API - Features - Part 1
       - OGC API - Coverages - Part 1
       - STAC API (incl. STAC Data Cube extension)
-  - name: OGC API - Features
-    description: Data access through OGC API - Features - Part 1 (v1.0.0) and STAC API (v1.0.0)
   - name: OGC API - Coverages
     description: Data access through OGC API - Coverages - Part 1 (v0.0.2)
+  - name: OGC API - Features / STAC API
+    description: >-
+      **OPTIONAL.** Data access through OGC API - Features - Part 1 (v1.0.0) and STAC API (v1.0.0)
   - name: Process Discovery
     description: |-
-      These endpoints allow to list the predefined processes that are available at the back-end. To list user-defined processes see 'openEO - User-Defined Processes'.
+      **OPTIONAL.** These endpoints allow to list the predefined processes that are available at the back-end. To list user-defined processes see 'openEO - User-Defined Processes'.
   - name: OGC API - Processes
-    description: Data processing through OGC API - Processes - Part 1 (v1.0.0)
+    description: >-
+      **OPTIONAL.** Data processing through OGC API - Processes - Part 1 (v1.0.0)
   - name: openEO
-    description: Data processing through openEO (v1.2.0)
+    description: >-
+      **OPTIONAL.** Data processing through openEO (v1.2.0)
   - name: openEO - User-Defined Processes
-    description: These endpoints allow to store and manage user-defined processes with their process graphs at the back-end.
+    description: >-
+      **OPTIONAL.** These endpoints allow to store and manage user-defined processes with their process graphs at the back-end.
   - name: openEO - Secondary Services (OGC APIs)
-    description: On-demand access to data using other web service protocols (e.g., OGC API - Tiles / Maps).
+    description: >-
+      **OPTIONAL.** On-demand access to data using other web service protocols (e.g., OGC API - Tiles / Maps).
 servers:
   - url: 'https://geodatacube.example/api'
     description: >-
@@ -720,19 +724,16 @@ paths:
         
         It is **strongly RECOMMENDED** to keep the response size small by
         omitting larger optional values from the objects in `collections` (e.g. the
-        `summaries` and `cube:dimensions` properties).
+        STAC `summaries` and `cube:dimensions` properties).
         To get the full metadata for a collection clients MUST
         request `GET /collections/{collection_id}`.
-
-        This endpoint is compatible with [STAC API 1.0.0 and later](https://stacspec.org) and
-        [OGC API - Features 1.0](http://docs.opengeospatial.org/is/17-069r3/17-069r3.html).
-        [STAC API extensions](https://stac-api-extensions.github.io) and
-        [STAC extensions](https://stac-extensions.github.io)
-        can be implemented in addition to what is documented here.
 
         Note: Although it is possible to request public collections without
         authorization, it is RECOMMENDED that clients (re-)request the collections
         with the Bearer token once available to also retrieve any private collections.
+
+        **NOTE:** This endpoint may return collections from STAC API / openEO API and OGC API - Coverages.
+        Distinguish them via the `stac_version` property which is always present for STAC API / openEO API, but not for OGC API - Coverages.
       tags:
         - Data Discovery / Access
       security:
@@ -755,7 +756,11 @@ paths:
                   collections:
                     type: array
                     items:
-                      $ref: '#/components/schemas/collection'
+                      allOf:
+                        - $ref: '#/components/schemas/collection'
+                      anyOf:
+                        - title: Coverage Collection
+                        - $ref: '#/components/schemas/stac_collection'
                   links:
                     $ref: '#/components/schemas/links_pagination'
               example:
@@ -854,13 +859,10 @@ paths:
         Lists **all** information about a specific collection specified by the
         identifier `collection_id`.
 
-        This endpoint is compatible with [STAC API 1.0.0 and later](https://stacspec.org) and
-        [OGC API - Features 1.0](http://docs.opengeospatial.org/is/17-069r3/17-069r3.html).
-        [STAC API extensions](https://stac-api-extensions.github.io) and
-        [STAC extensions](https://stac-extensions.github.io)
-        can be implemented in addition to what is documented here.
-
         Note: Providing the Bearer token is REQUIRED for private collections.
+
+        **NOTE:** This endpoint may return collections from STAC API / openEO API and OGC API - Coverages.
+        Distinguish them via the `stac_version` property which is always present for STAC API / openEO API, but not for OGC API - Coverages.
       tags:
         - Data Discovery / Access
       security:
@@ -875,11 +877,15 @@ paths:
             application/json:
               schema:
                 type: object
-                required:
-                  - 'cube:dimensions'
-                  - summaries
                 allOf:
                   - $ref: '#/components/schemas/collection'
+                anyOf:
+                  - title: Coverage Collection
+                  - required:
+                      - 'cube:dimensions'
+                      - summaries
+                    allOf:
+                      - $ref: '#/components/schemas/stac_collection'
               example:
                 stac_version: 1.0.0
                 stac_extensions:
@@ -1086,6 +1092,7 @@ paths:
         Note: Providing the Bearer token is REQUIRED for private collections.
       tags:
         - Data Discovery / Access
+        - OGC API - Features / STAC API
       security:
         - {}
         - Bearer: []
@@ -1127,8 +1134,7 @@ paths:
   "/collections/{collection_id}/items":
     get:
       tags:
-        - Data Discovery / Access
-        - OGC API - Features
+        - OGC API - Features / STAC API
       summary: Fetch Features / Items
       description: |-
         Fetch features of the feature collection with id `collection_id`.
@@ -1195,8 +1201,7 @@ paths:
   "/collections/{collection_id}/items/{feature_id}":
     get:
       tags:
-        - Data Discovery / Access
-        - OGC API - Features
+        - OGC API - Features / STAC API
       summary: Fetch a Feature / Item
       description: |-
         Fetch the feature with id `feature_id` in the feature collection
@@ -1410,7 +1415,8 @@ paths:
         Lists all predefined processes and returns
         detailed process descriptions, including parameters and return values.
 
-        **NOTE:** This endpoint may return processes from openEO and OGC API - Processes. Distinguish them via the `version` property (OGC API) and the `parameters` / `returns` (openEO) properties.
+        **NOTE:** This endpoint may return processes from openEO and OGC API - Processes.
+        Distinguish them via the `version` property (OGC API) and the `parameters` / `returns` (openEO) properties.
       tags:
         - Process Discovery
         - OGC API - Processes
@@ -2559,7 +2565,8 @@ paths:
         objects in `jobs`.
         To get the full metadata for a job clients MUST request `GET /jobs/{job_id}`.
 
-        **NOTE:** This endpoint may return jobs from openEO and OGC API - Processes. Distinguish them via the `jobID` (OGC API) and the `id` (openEO) property.
+        **NOTE:** This endpoint may return jobs from openEO and OGC API - Processes.
+        Distinguish them via the `jobID` (OGC API) and the `id` (openEO) property.
       tags:
         - OGC API - Processes
         - openEO
@@ -2701,7 +2708,8 @@ paths:
       description: |-
         Lists information about a batch job.
 
-        **NOTE:** This endpoint may return a job from openEO or OGC API - Processes. Distinguish them via the `jobID` (OGC API) and the `id` (openEO) property.
+        **NOTE:** This endpoint may return a job from openEO or OGC API - Processes.
+        Distinguish them via the `jobID` (OGC API) and the `id` (openEO) property.
       tags:
         - openEO
         - OGC API - Processes
@@ -2792,7 +2800,8 @@ paths:
       summary: List batch job results
       operationId: list-results
       description: |-
-        **NOTE:** This endpoint may return a job from openEO or OGC API - Processes. Distinguish them via the `assets` property which is always present for openEO, but not for OGC API - Processes.
+        **NOTE:** This endpoint may return a job from openEO or OGC API - Processes.
+        Distinguish them via the `assets` property which is always present for openEO, but not for OGC API - Processes.
 
         ## OGC API - Processes
         Lists available results of a job. In case of a failure, lists exceptions instead.
@@ -4957,6 +4966,12 @@ components:
             * `metadata`: Additional metadata available for the computed data.
           example:
             - data
+    stac_extent:
+      allOf:
+        - $ref: '#/components/schemas/extent'
+        - required:
+          - spatial
+          - temporal
     extent:
       type: object
       title: Collection Extent
@@ -4970,14 +4985,11 @@ components:
         e.g. to identify clusters of data.
         Clients only interested in the overall extent will only need to
         access the first item in each array.
-      required:
-        - spatial
-        - temporal
       properties:
         spatial:
           title: Collection Spatial Extent
           description: >-
-            The *potential* spatial extents of the features in the
+            The spatial extents of the data in the
             collection.
           type: object
           properties:
@@ -5008,10 +5020,50 @@ components:
               - http://www.opengis.net/def/crs/OGC/1.3/CRS84
               - http://www.opengis.net/def/crs/OGC/0/CRS84h
               default: http://www.opengis.net/def/crs/OGC/1.3/CRS84
+            grid:
+              description: |-
+                Provides information about the limited availability of data within the collection organized
+                as a grid (regular or irregular) along each spatial dimension.
+              type: array
+              minItems: 2
+              maxItems: 3
+              items:
+                type: object
+                properties:
+                  coordinates:
+                    description: |-
+                      List of coordinates along the dimension for which data organized as an irregular grid in the collection is available
+                      (e.g., 2, 10, 80, 100).
+                    type: array
+                    minItems: 1
+                    items:
+                      oneOf:
+                        - type: string
+                          nullable: true
+                        - type: number
+                    example:
+                      - 2
+                      - 10
+                      - 80
+                      - 100
+                  cellsCount:
+                    description: |-
+                      Number of samples available along the dimension for data organized as a regular grid.
+                      For values representing the whole area of contiguous cells spanning _resolution_ units along the dimension, this will be (_upperBound_ - _lowerBound_) / _resolution_.
+                      For values representing infinitely small point cells spaced by _resolution_ units along the dimension, this will be (_upperBound_ - _lowerBound_) / _resolution_ + 1.
+                    type: integer
+                    example: 50
+                  resolution:
+                    description: Resolution of regularly gridded data along the dimension in the collection
+                    oneOf:
+                      - type: string
+                        nullable: true
+                      - type: number
+                    example: 0.0006866455078
         temporal:
           title: Collection Temporal Extent
           description: >-
-            The *potential* temporal extents of the features in the
+            The temporal extents of the data in the
             collection.
           type: object
           properties:
@@ -5055,26 +5107,95 @@ components:
               enum:
               - http://www.opengis.net/def/uom/ISO-8601/0/Gregorian
               default: http://www.opengis.net/def/uom/ISO-8601/0/Gregorian
+      additionalProperties:
+        description: The domain intervals for any additional dimensions of the extent (envelope) beyond those described in temporal and spatial.
+        type: object
+        oneOf:
+          - required:
+              - interval
+              - crs
+          - required:
+              - interval
+              - trs
+          - required:
+              - interval
+              - vrs
+        properties:
+          interval:
+            description: |-
+              One or more intervals that describe the extent for this dimension of the dataset.
+              The value `null` is supported and indicates an unbounded or half-bounded interval.
+              The first interval describes the overall extent of the data for this dimension.
+              All subsequent intervals describe more precise intervals, e.g., to identify clusters of data.
+              Clients only interested in the overall extent will only need
+              to access the first item (a pair of lower and upper bound values).
+            type: array
+            minItems: 1
+            items:
+              description: |-
+                Lower and upper bound values of the interval. The values
+                are in the coordinate reference system specified in `crs`, `trs` or `vrs`.
+              type: array
+              minItems: 2
+              maxItems: 2
+              items:
+                oneOf:
+                  - type: string
+                    nullable: true
+                  - type: number
+          crs:
+            type: string
+            description: generic coordinate reference system suitable for any type of dimensions
+          trs:
+            type: string
+            description: temporal coordinate reference system (e.g. as defined by Features for 'temporal')
+          vrs:
+            type: string
+            description: vertical coordinate reference system (e.g. as defined in EDR for 'vertical')
+          grid:
+            type: object
+            description: Provides information about the limited availability of data within the collection organized as a grid (regular or irregular) along the dimension.
+            properties:
+              coordinates:
+                description: |-
+                  List of coordinates along the temporal dimension for which data organized as an irregular grid in the collection is available
+                  (e.g., 2, 10, 80, 100).
+                type: array
+                minItems: 1
+                items:
+                  oneOf:
+                    - type: string
+                      nullable: true
+                    - type: number
+                example:
+                  - 2
+                  - 10
+                  - 80
+                  - 100
+              cellsCount:
+                description: |-
+                  Number of samples available along the dimension for data organized as a regular grid.
+                  For values representing the whole area of contiguous cells spanning _resolution_ units along the dimension, this will be (_upperBound_ - _lowerBound_) / _resolution_.
+                  For values representing infinitely small point cells spaced by _resolution_ units along the dimension, this will be (_upperBound_ - _lowerBound_) / _resolution_ + 1.
+                type: integer
+                example: 50
+              resolution:
+                description: Resolution of regularly gridded data along the dimension in the collection
+                oneOf:
+                  - type: string
+                    nullable: true
+                  - type: number
+                example:
+                  - PT1H
+                  - 0.0006866455078
     collection:
-      title: Collection
+      title: Coverages Collection
       type: object
       required:
-        - stac_version
-        - type
         - id
-        - description
-        - license
         - extent
         - links
       properties:
-        stac_version:
-          $ref: '#/components/schemas/stac_version'
-        stac_extensions:
-          $ref: '#/components/schemas/stac_extensions'
-        type:
-          type: string
-          enum:
-            - Collection
         id:
           $ref: '#/components/schemas/collection_id'
         title:
@@ -5083,43 +5204,11 @@ components:
         description:
           type: string
           format: commonmark
-          description: >-
+          description: |-
             Detailed multi-line description to explain the collection.
-
 
             [CommonMark 0.29](http://commonmark.org/) syntax MAY be used for
             rich text representation.
-        keywords:
-          type: array
-          description: List of keywords describing the collection.
-          items:
-            type: string
-        version:
-          type: string
-          description: |-
-            Version of the collection.
-
-            This property REQUIRES to add `version` (STAC < 1.0.0-rc.1) or
-            `https://stac-extensions.github.io/version/v1.2.0/schema.json` (STAC >= 1.0.0-rc.1)
-            to the list of `stac_extensions`.
-        deprecated:
-          type: boolean
-          default: false
-          description: |-
-            Specifies that the collection is deprecated with the potential to
-            be removed. It should be transitioned out of usage as soon as
-            possible and users should refrain from using it in new projects.
-            
-            A link with relation type `latest-version` SHOULD be added to the
-            links and MUST refer to the collection that can be used instead.
-
-            This property REQUIRES to add `version` (STAC < 1.0.0-rc.1) or
-            `https://stac-extensions.github.io/version/v1.2.0/schema.json` (STAC >= 1.0.0-rc.1)
-            to the list of `stac_extensions`.
-        license:
-          $ref: '#/components/schemas/stac_license'
-        providers:
-          $ref: '#/components/schemas/stac_providers'
         extent:
           $ref: '#/components/schemas/extent'
         links:
@@ -5158,6 +5247,69 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/link'
+        itemType:
+          description: indicator about the type of the items in the collection if the collection has an accessible /collections/{collectionId}/items endpoint
+          type: string
+        crs:
+          description: the list of coordinate reference systems supported by the API; the first item is the default coordinate reference system
+          type: array
+          items:
+            type: string
+          default:
+            - http://www.opengis.net/def/crs/OGC/1.3/CRS84
+          example:
+            - http://www.opengis.net/def/crs/OGC/1.3/CRS84
+            - http://www.opengis.net/def/crs/EPSG/0/4326
+        dataType:
+          allOf:
+            - description: Type of data represented in the collection
+            - $ref: '#/components/schemas/dataType'
+        geometryDimension:
+          description: 'The geometry dimension of the features shown in this layer (0: points, 1: curves, 2: surfaces, 3: solids), unspecified: mixed or unknown'
+          type: integer
+          minimum: 0
+          maximum: 3
+        minScaleDenominator:
+          description: Minimum scale denominator for usage of the collection
+          type: number
+        maxScaleDenominator:
+          description: Maximum scale denominator for usage of the collection
+          type: number
+        minCellSize:
+          description: Minimum cell size for usage of the collection
+          type: number
+        maxCellSize:
+          description: Maximum cell size for usage of the collection
+          type: number
+    stac_collection:
+      title: STAC / openEO Collection
+      type: object
+      required:
+        - stac_version
+        - type
+        - description
+        - license
+        - links
+      properties:
+        stac_version:
+          $ref: '#/components/schemas/stac_version'
+        stac_extensions:
+          $ref: '#/components/schemas/stac_extensions'
+        type:
+          type: string
+          enum:
+            - Collection
+        keywords:
+          type: array
+          description: List of keywords describing the collection.
+          items:
+            type: string
+        license:
+          $ref: '#/components/schemas/stac_license'
+        providers:
+          $ref: '#/components/schemas/stac_providers'
+        extent:
+          $ref: '#/components/schemas/stac_extent'
         'cube:dimensions':
           title: STAC Collection Cube Dimensions
           description: |-
@@ -5226,9 +5378,6 @@ components:
             Dictionary of asset objects for data that can be downloaded,
             each with a unique key.
             The keys MAY be used by clients as file names.
-
-            Implementing this property REQUIRES to add `collection-assets`
-            to the list of `stac_extensions` in STAC < 1.0.0-rc.1.
           allOf:
             - $ref: '#/components/schemas/stac_assets'
     stac_version:
