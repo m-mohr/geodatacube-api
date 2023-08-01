@@ -245,22 +245,15 @@ tags:
     description: General information about the API implementation and other supported capabilities at the back-end.
   - name: Account Management
     description: |-
-      The following endpoints handle user profiles, accounting and authentication. See also [Authentication](#section/Authentication). In general, the API only defines a minimum subset of user management and accounting functionality. It allows to
-
-      * [authenticate and authorize](http://www.differencebetween.net/technology/difference-between-authentication-and-authorization/) a user, which may include [user registration with OpenID Connect](http://openid.net/specs/openid-connect-registration-1_0.html),
-      * handle storage space limits (disk quota),
-      * manage billing, which includes to
-          * query the credit a user has available,
-          * estimate costs for certain operations (data processing and downloading),
-          * get information about produced costs,
-          * limit costs of certain operations.
+      The following endpoints handle authentication and basic user profiles. See also [Authentication](#section/Authentication). In general, the API only defines a minimum subset of account management. It allows to [authenticate and authorize](http://www.differencebetween.net/technology/difference-between-authentication-and-authorization/) a user, which may include [user registration with OpenID Connect](http://openid.net/specs/openid-connect-registration-1_0.html),
+      For accounting, quota handling and similar functionality you can explore the openEO API.
 
       Therefore, the API leaves some aspects open that have to be handled by the back-ends separately, including 
 
       * credentials recovery, e.g. retrieving a forgotten password
       * user data management, e.g. changing the users payment details or email address
       * payments, i.e. topping up credits for pre-paid services or paying for post-paid services
-      * other accounting related tasks, e.g. creating invoices,
+      * accounting related tasks, e.g. processing costs and creating invoices,
       * user registration (except for [user registration with OpenID Connect](http://openid.net/specs/openid-connect-registration-1_0.html)).
   - name: Data Discovery / Access
     description: |-
