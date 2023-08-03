@@ -318,7 +318,6 @@ paths:
                   - description
                   - gdc_version
                   - backend_version
-                  - stac_version
                   - endpoints
                   - links
                   - conformsTo
