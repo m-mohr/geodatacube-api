@@ -317,10 +317,8 @@ paths:
                   - title
                   - description
                   - gdc_version
-                  - backend_version
                   - endpoints
                   - links
-                  - conformsTo
                 properties:
                   gdc_version:
                     type: string
