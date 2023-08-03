@@ -342,6 +342,7 @@ paths:
                     description: >-
                       If the openEO API is implemented: Version number of the openEO API specification this back-end
                       implements.
+                    example: 1.2.0
                   type:
                     type: string
                     enum:
