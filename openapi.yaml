@@ -171,7 +171,7 @@ info:
     
     | Name                             | Description                                                  | Example |
     | -------------------------------- | ------------------------------------------------------------ | ------- |
-    | Access-Control-Allow-Origin      | Allowed origin for the request, including protocol, host and port or `*` for all origins. It is RECOMMENDED to return the value `*` to allow requests from browser-based implementations such as the Web Editor. | `*` |
+    | Access-Control-Allow-Origin      | Allowed origin for the request, including protocol, host and port or `*` for all origins. It is RECOMMENDED to return the value `*` to allow requests from browser-based implementations. | `*` |
     | Access-Control-Expose-Headers    | Some endpoints require to send additional HTTP response headers such as `GDC-Identifier` and `Location`. To make these headers available to browser-based clients, they MUST be white-listed with this CORS header. The following HTTP headers are white-listed by browsers and MUST NOT be included: `Cache-Control`, `Content-Language`, `Content-Length`, `Content-Type`, `Expires`, `Last-Modified` and `Pragma`. At least the following headers MUST be listed in this version of the API: `Link`, `Location`, and `GDC-Identifier`. | `Link, Location, GDC-Identifier` |
     
     
@@ -1630,7 +1630,7 @@ paths:
         It is highly RECOMMENDED to implement OpenID Connect for public services
         in favor of Basic authentication.
 
-        openEO clients MUST use the **access token** as part of the Bearer token
+        GDC clients MUST use the **access token** as part of the Bearer token
         for authorization in subsequent API calls (see also the information
         about Bearer tokens in this document). Clients MUST NOT use the id token
         or the authorization code. The access token provided by an OpenID Connect
